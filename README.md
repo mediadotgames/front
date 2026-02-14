@@ -71,3 +71,21 @@ export default defineConfig([
   },
 ])
 ```
+
+## DB Layout
+
+```txt
+src/
+  db/
+    pool.ts                # you already have this
+    anomalies.ts           # (from earlier)
+  api/
+    server.ts              # Express app + routes
+    routes/
+      anomalies.routes.ts  # /api/anomalies endpoints
+    validators/
+      anomalies.zod.ts     # zod schemas for query/body validation
+tests/
+  api.anomalies.test.ts    # Jest + supertest tests (read-only for now)
+.env                       # add API_PORT, CORS_ORIGIN, DATABASE_URL
+```
