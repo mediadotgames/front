@@ -482,7 +482,7 @@
 
     .sources-table th {
       text-align: left;
-      padding: 8px 14px;
+      padding: 6px 8px;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
@@ -492,12 +492,18 @@
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
+      white-space: nowrap;
     }
 
     .sources-table td {
-      padding: 8px 14px;
+      padding: 6px 8px;
       border-bottom: 1px solid var(--border-light);
       color: var(--text-secondary);
+    }
+
+    .sources-table td:nth-child(n+4) {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .sources-table tr:last-child td {
@@ -1165,41 +1171,41 @@
               <tr>
                 <th>Source</th>
                 <th>Geo</th>
-                <th>Bias Score</th>
+                <th>Composite Bias</th>
                 <th><a href="https://app.adfontesmedia.com/chart/interactive" target="_blank" style="color: inherit; text-decoration: underline;">Ad Fontes</a></th>
                 <th><a href="https://www.allsides.com/media-bias/media-bias-chart" target="_blank" style="color: inherit; text-decoration: underline;">AllSides</a></th>
                 <th><a href="https://mediabiasfactcheck.com/" target="_blank" style="color: inherit; text-decoration: underline;">MBFC</a></th>
               </tr>
             </thead>
             <tbody>
-              <tr><td class="source-name">AP NEWS</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Least Biased</td><td>Left</td><td>Least Biased</td></tr>
-              <tr><td class="source-name">ABC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">Al Jazeera</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">Axios</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">BBC</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">Bloomberg</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">CBS News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">CNN</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">Daily Wire</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>Hyper-Partisan Right</td><td>Right</td><td>Right</td></tr>
-              <tr><td class="source-name">Fox News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>Skews Right</td><td>Right</td><td>Right</td></tr>
-              <tr><td class="source-name">Los Angeles Times</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">MS NOW</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-left">Left</span></td><td>Most Extreme Left</td><td>Left</td><td>Left</td></tr>
-              <tr><td class="source-name">NBC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">NY Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>Skews Right</td><td>Lean Right</td><td>Right-Center</td></tr>
-              <tr><td class="source-name">NYT</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">National Review</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>Hyper-Partisan Right</td><td>Right</td><td>Right</td></tr>
-              <tr><td class="source-name">Newsweek</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">POLITICO</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">RT</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>Hyper-Partisan Right</td><td>Right</td><td>Right</td></tr>
-              <tr><td class="source-name">Reuters</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Least Biased</td></tr>
-              <tr><td class="source-name">South China Morning Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">The Guardian</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left</td></tr>
-              <tr><td class="source-name">The Hill</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Least Biased</td></tr>
-              <tr><td class="source-name">The Jerusalem Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>Skews Right</td><td>Lean Right</td><td>Right-Center</td></tr>
-              <tr><td class="source-name">USA Today</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Middle</td><td>Center</td><td>Least Biased</td></tr>
-              <tr><td class="source-name">WSJ</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>Middle</td><td>Lean Right</td><td>Right-Center</td></tr>
-              <tr><td class="source-name">Washington Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
-              <tr><td class="source-name">Yahoo News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>Skews Left</td><td>Lean Left</td><td>Left-Center</td></tr>
+              <tr><td class="source-name">AP NEWS</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-0.3</td><td>-3.02</td><td>-2.1</td></tr>
+              <tr><td class="source-name">ABC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-5</td><td>-1.5</td><td>-3</td></tr>
+              <tr><td class="source-name">Al Jazeera</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-8</td><td>-2.3</td><td>-3.2</td></tr>
+              <tr><td class="source-name">Axios</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-4</td><td>-1.2</td><td>-2.8</td></tr>
+              <tr><td class="source-name">BBC</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>-1</td><td>-0.8</td><td>-3</td></tr>
+              <tr><td class="source-name">Bloomberg</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-3</td><td>-1</td><td>-3</td></tr>
+              <tr><td class="source-name">CBS News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-6</td><td>-1.6</td><td>-3.2</td></tr>
+              <tr><td class="source-name">CNN</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-9</td><td>-1.8</td><td>-3.5</td></tr>
+              <tr><td class="source-name">Daily Wire</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>28</td><td>5.2</td><td>7.2</td></tr>
+              <tr><td class="source-name">Fox News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>17.4</td><td>3.27</td><td>8</td></tr>
+              <tr><td class="source-name">Los Angeles Times</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7</td><td>-2.1</td><td>-3.4</td></tr>
+              <tr><td class="source-name">MS NOW</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-left">Left</span></td><td>-19</td><td>-5.08</td><td>-6.4</td></tr>
+              <tr><td class="source-name">NBC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7</td><td>-1.7</td><td>-3.3</td></tr>
+              <tr><td class="source-name">NY Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>12</td><td>2.8</td><td>4.9</td></tr>
+              <tr><td class="source-name">NYT</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7.4</td><td>-2.2</td><td>-4.1</td></tr>
+              <tr><td class="source-name">National Review</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>22</td><td>4.5</td><td>6.6</td></tr>
+              <tr><td class="source-name">Newsweek</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-1</td><td>-0.2</td><td>-2.5</td></tr>
+              <tr><td class="source-name">POLITICO</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-5</td><td>-1.2</td><td>-2.8</td></tr>
+              <tr><td class="source-name">RT</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>24</td><td>3.8</td><td>7.5</td></tr>
+              <tr><td class="source-name">Reuters</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>-0.85</td><td>-0.5</td></tr>
+              <tr><td class="source-name">South China Morning Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0</td><td>-2.9</td></tr>
+              <tr><td class="source-name">The Guardian</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-11</td><td>-2.4</td><td>-5</td></tr>
+              <tr><td class="source-name">The Hill</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0.2</td><td>0</td></tr>
+              <tr><td class="source-name">The Jerusalem Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>6</td><td>1.8</td><td>3.8</td></tr>
+              <tr><td class="source-name">USA Today</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td class="source-name">WSJ</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>2.3</td><td>0.33</td><td>4.2</td></tr>
+              <tr><td class="source-name">Washington Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7.1</td><td>-1.63</td><td>-3.6</td></tr>
+              <tr><td class="source-name">Yahoo News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-3</td><td>-1</td><td>-2.7</td></tr>
             </tbody>
           </table>
         </div>
