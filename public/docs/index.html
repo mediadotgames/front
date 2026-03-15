@@ -721,7 +721,7 @@
         <div class="sidebar-heading">Key Concepts</div>
         <a href="#concept-topics" class="sidebar-link" onclick="showPage('concept-topics', this)">Stories &amp; Clusters</a>
         <a href="#concept-pi" class="sidebar-link" onclick="showPage('concept-pi', this)">Public Interest</a>
-        <a href="#concept-coverage" class="sidebar-link" onclick="showPage('concept-coverage', this)">Coverage</a>
+        <a href="#concept-coverage" class="sidebar-link" onclick="showPage('concept-coverage', this)">Coverage Asymmetry</a>
         <a href="#concept-anomalies" class="sidebar-link" onclick="showPage('concept-anomalies', this)">Anomalies</a>
       </div>
 
@@ -866,6 +866,28 @@
           <span class="op">AND</span> (<span class="keyword">real_world_impact</span> <span class="op">=</span> <span class="value">true</span> <span class="op">OR</span> <span class="keyword">institutional_action</span> <span class="op">=</span> <span class="value">true</span>)
         </div>
 
+        <h2>National Relevance</h2>
+        <p>
+          In addition to public interest, each story is independently flagged for <strong>national relevance</strong>
+          (<code>US_relevance</code>) — a separate boolean that indicates whether the story directly affects
+          the United States.
+        </p>
+        <p>
+          A story is nationally relevant if it directly affects U.S. governance, economy, security, or
+          population, or involves U.S. institutions or citizens. This flag is evaluated by the same LLM
+          alongside the four public interest criteria, but it is <strong>independent of the PI gate rule</strong> —
+          a story can be nationally relevant without being public interest, and vice versa.
+        </p>
+
+        <div class="callout">
+          <div class="callout-label">Why a separate flag?</div>
+          The public interest evaluation has no geographic dimension. Without national relevance,
+          foreign-only stories (e.g. UK local politics) that score high on PI would distort
+          anomaly detection — particularly detectors like <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">Domestic Blindspot</a>
+          that specifically look for gaps in US coverage. The national relevance flag lets us
+          distinguish globally-relevant PI from US-specific PI.
+        </div>
+
         <h2>Classification</h2>
         <table class="class-table">
           <thead>
@@ -965,11 +987,11 @@
         </p>
       </div>
 
-      <!-- KEY CONCEPT: COVERAGE -->
+      <!-- KEY CONCEPT: COVERAGE ASYMMETRY -->
       <div id="page-concept-coverage" class="section-page">
-        <h1>Coverage</h1>
+        <h1>Coverage Asymmetry</h1>
         <p class="page-subtitle">
-          How we measure the attention a story receives across sources.
+          How we measure the attention a story receives — and where that attention is uneven.
         </p>
 
         <h2>Metrics</h2>
@@ -978,12 +1000,38 @@
             <tr><th>Metric</th><th>Definition</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>article_count</code></td><td>Total articles about a story from a given source</td></tr>
-            <tr><td><code>pi_count</code></td><td>Articles classified as public interest</td></tr>
-            <tr><td><code>noise_count</code></td><td>Articles classified as not public interest</td></tr>
-            <tr><td><code>news_to_noise_ratio</code></td><td>Ratio of public interest articles to total articles (0.0 to 1.0)</td></tr>
+            <tr><td><code>article_count</code></td><td>Total articles about a story across all sources</td></tr>
+            <tr><td><code>news_to_noise_ratio</code></td><td>Ratio of public interest articles to total articles (0.0 to 1.0). A high ratio means substantive coverage; a low ratio means filler.</td></tr>
+            <tr><td><code>pol_skew</code></td><td>Political lean skew: <code>(left_count - right_count) / (left_count + right_count)</code>. Ranges from -1.0 (only right sources) to +1.0 (only left sources). Center sources are excluded.</td></tr>
+            <tr><td><code>geo_skew</code></td><td>Geographic skew: <code>(us_count - nonus_count) / (us_count + nonus_count)</code>. Ranges from -1.0 (only non-US sources) to +1.0 (only US sources).</td></tr>
           </tbody>
         </table>
+
+        <h2>Political Lean Skew</h2>
+        <p>
+          <code>pol_skew</code> measures whether a story is being covered asymmetrically along political lines.
+          It compares article counts from left-leaning sources against right-leaning sources, excluding
+          center sources from the calculation.
+        </p>
+        <p>
+          A <code>pol_skew</code> near <strong>0</strong> means balanced coverage across the political spectrum.
+          A value near <strong>+1.0</strong> means the story is being covered almost exclusively by left-leaning sources.
+          A value near <strong>-1.0</strong> means almost exclusively by right-leaning sources.
+          Large skew in either direction is interesting — it may indicate that the story is being
+          emphasized or de-emphasized along political lines.
+        </p>
+
+        <h2>Geographic Skew</h2>
+        <p>
+          <code>geo_skew</code> measures whether a story is being covered asymmetrically between US and
+          international sources.
+        </p>
+        <p>
+          A value near <strong>+1.0</strong> means the story is covered almost exclusively by US sources.
+          A value near <strong>-1.0</strong> means almost exclusively by non-US sources.
+          Stories with extreme negative geo skew — high international coverage but low US coverage —
+          may represent <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">domestic blindspots</a>.
+        </p>
 
         <h2>News-to-Noise Ratio</h2>
         <p>
@@ -991,6 +1039,12 @@
           versus filler. A ratio of <strong>1.0</strong> means every article is public interest.
           A ratio of <strong>0.0</strong> means none are.
         </p>
+
+        <div class="callout">
+          <div class="callout-label">Important</div>
+          These metrics are <em>observations</em>, not judgments. Asymmetry doesn't mean anyone is right or
+          wrong — it means coverage is uneven, which is worth noticing.
+        </div>
       </div>
 
       <!-- KEY CONCEPT: TOPICS -->
