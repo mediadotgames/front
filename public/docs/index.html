@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>media.games — Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== DESIGN TOKENS (from style_guide.md) ===== */
+    [data-theme="light"] {
+      --bg: #FAF9F6;
+      --surface: #F0EDE8;
+      --surface-hover: #E8E4DD;
+      --surface-white: #FFFFFF;
+      --border: #DDD7CE;
+      --border-light: #E8E3DB;
+      --text: #2D2B28;
+      --text-secondary: #6B6560;
+      --text-tertiary: #9B958E;
+      --brand: #9C6A60;
+      --brand-bg: rgba(156,106,96, 0.08);
+      --brand-border: rgba(156,106,96, 0.3);
+      --accent: #7C8578;
+      --accent-bg: rgba(124,133,120, 0.10);
+      --accent-border: rgba(124,133,120, 0.3);
+      --row-hover: rgba(156,106,96, 0.04);
+      --focus-ring: rgba(156,106,96, 0.15);
+      --gap-left: #5B7FA6;
+      --gap-right: #B86A5A;
+      --tag-bg: #EDEAE5;
+      --tag-border: #D8D3CB;
+      --drawer-shadow: 0 8px 32px rgba(45,43,40, 0.12);
+      --code-bg: #2D2B28;
+      --code-text: #E8E3DB;
+      --callout-bg: rgba(156,106,96, 0.06);
+      --callout-border: rgba(156,106,96, 0.20);
+      /* Bias group colors */
+      --bias-left: #5B7FA6;
+      --bias-lean-left: #7A9DB8;
+      --bias-center: #9B958E;
+      --bias-lean-right: #C08D7D;
+      --bias-right: #B86A5A;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f1117;
+      --surface: #1e2030;
+      --surface-hover: #282a3a;
+      --surface-white: #161822;
+      --border: #2a2d3a;
+      --border-light: #1e2030;
+      --text: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --text-tertiary: #666666;
+      --brand: #4ade80;
+      --brand-bg: rgba(74,222,128, 0.08);
+      --brand-border: rgba(74,222,128, 0.3);
+      --accent: #6366f1;
+      --accent-bg: rgba(99,102,241, 0.10);
+      --accent-border: rgba(99,102,241, 0.3);
+      --row-hover: rgba(74,222,128, 0.04);
+      --focus-ring: rgba(74,222,128, 0.15);
+      --gap-left: #60a5fa;
+      --gap-right: #f87171;
+      --tag-bg: #1e2030;
+      --tag-border: #2a2d3a;
+      --drawer-shadow: 0 8px 32px rgba(0,0,0, 0.4);
+      --code-bg: #161822;
+      --code-text: #a0a0a0;
+      --callout-bg: rgba(74,222,128, 0.06);
+      --callout-border: rgba(74,222,128, 0.20);
+      --bias-left: #60a5fa;
+      --bias-lean-left: #93c5fd;
+      --bias-center: #666666;
+      --bias-lean-right: #fca5a5;
+      --bias-right: #f87171;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== TOP NAV ===== */
+    .topnav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: var(--surface-white);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      z-index: 100;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .topnav-logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .topnav-logo span {
+      color: var(--brand);
+    }
+
+    .topnav-sep {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 16px;
+    }
+
+    .topnav-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .topnav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 4px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    .theme-toggle-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+
+    .theme-toggle-icon.active {
+      background: var(--surface-white);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      margin-top: 52px;
+      min-height: calc(100vh - 52px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: var(--surface-white);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 52px;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .sidebar-section {
+      margin-bottom: 20px;
+    }
+
+    .sidebar-heading {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      padding: 0 20px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-link {
+      display: block;
+      padding: 5px 20px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar-link:hover {
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .sidebar-link.active {
+      color: var(--brand);
+      border-left-color: var(--brand);
+      background: var(--brand-bg);
+      font-weight: 600;
+    }
+
+    .sidebar-link.sub {
+      padding-left: 36px;
+      font-size: 13px;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      max-width: 780px;
+      padding: 40px 56px 80px;
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 40px;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 28px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== CALLOUT ===== */
+    .callout {
+      background: var(--callout-bg);
+      border: 1px solid var(--callout-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 20px 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .callout-label {
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--brand);
+      margin-bottom: 4px;
+    }
+
+    /* ===== CRITERIA CARDS ===== */
+    .criteria-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .criteria-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--surface-white);
+      transition: background 0.3s;
+    }
+
+    .criteria-card h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .criteria-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 0;
+      line-height: 1.5;
+    }
+
+    .criteria-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ===== GATE RULE (code block) ===== */
+    .gate-rule {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      margin: 20px 0;
+      line-height: 1.8;
+    }
+
+    .gate-rule .comment { color: var(--text-tertiary); }
+    .gate-rule .keyword { color: var(--brand); }
+    .gate-rule .value { color: var(--accent); }
+    .gate-rule .op { color: var(--text-secondary); }
+
+    /* ===== TABLES ===== */
+    .class-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13px;
+    }
+
+    .class-table th {
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+      border-bottom: 2px solid var(--border);
+      background: var(--surface-white);
+    }
+
+    .class-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text);
+    }
+
+    .class-table tr:hover td {
+      background: var(--row-hover);
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tag-left { background: rgba(91,127,166,0.12); color: var(--bias-left); }
+    .tag-lean-left { background: rgba(122,157,184,0.12); color: var(--bias-lean-left); }
+    .tag-center { background: var(--tag-bg); color: var(--text-secondary); }
+    .tag-lean-right { background: rgba(192,141,125,0.12); color: var(--bias-lean-right); }
+    .tag-right { background: rgba(184,106,90,0.12); color: var(--bias-right); }
+    .tag-us { background: var(--brand-bg); color: var(--brand); border: 1px solid var(--brand-border); }
+    .tag-nonus { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+
+    /* ===== DETECTOR CARDS ===== */
+    .detector-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+      background: var(--surface-white);
+      transition: box-shadow 0.15s, background 0.3s;
+    }
+
+    .detector-card:hover {
+      box-shadow: 0 2px 8px rgba(45,43,40,0.06);
+    }
+
+    .detector-card h3 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .detector-card .formula {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--brand);
+      margin-bottom: 8px;
+    }
+
+    .detector-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 0;
+    }
+
+    .coming-soon {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+      background: var(--tag-bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ===== SOURCES TABLE ===== */
+    .sources-table-wrap {
+      overflow-x: auto;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .sources-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .sources-table th {
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
+
+    .sources-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-secondary);
+    }
+
+    .sources-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .sources-table tr:hover td {
+      background: var(--row-hover);
+    }
+
+    .source-name {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* ===== SECTION PAGES ===== */
+    .section-page {
+      display: none;
+    }
+
+    .section-page.active {
+      display: block;
+    }
+
+    /* ===== METHODOLOGY TOGGLES ===== */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 12px 0;
+      background: var(--surface-white);
+      transition: background 0.3s;
+    }
+
+    details summary {
+      padding: 14px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    details summary::before {
+      content: '▸';
+      font-size: 11px;
+      color: var(--text-tertiary);
+      transition: transform 0.15s;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    details summary::-webkit-details-marker { display: none; }
+
+    details .details-content {
+      padding: 0 18px 18px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    details .details-content p {
+      font-size: 13px;
+    }
+
+    /* ===== LISTS ===== */
+    ul, ol {
+      margin: 10px 0 14px 20px;
+      font-size: 14px;
+    }
+
+    li {
+      margin-bottom: 5px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--brand);
+    }
+
+    /* ===== GROUPING TABS ===== */
+    .grouping-tabs {
+      display: flex;
+      gap: 0;
+      margin: 20px 0 0;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .grouping-tab {
+      padding: 8px 18px;
+      font-family: Inter, -apple-system, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .grouping-tab:hover {
+      color: var(--text);
+    }
+
+    .grouping-tab.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+      font-weight: 600;
+    }
+
+    .grouping-panel {
+      display: none;
+      padding-top: 20px;
+    }
+
+    .grouping-panel.active {
+      display: block;
+    }
+
+    .group-section {
+      margin-bottom: 16px;
+    }
+
+    .group-header {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 6px 6px 0 0;
+      border-bottom: 2px solid;
+    }
+
+    .group-left { color: var(--bias-left); background: var(--surface); border-color: var(--bias-left); }
+    .group-center { color: var(--text-tertiary); background: var(--surface); border-color: var(--border); }
+    .group-right { color: var(--bias-right); background: var(--surface); border-color: var(--bias-right); }
+    .group-us { color: var(--brand); background: var(--surface); border-color: var(--brand); }
+    .group-intl { color: var(--accent); background: var(--surface); border-color: var(--accent); }
+
+    .group-outlets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 14px;
+      background: var(--surface-white);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .group-outlet {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* ===== FOOTER ===== */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-light);
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 28px 20px 48px; }
+      .criteria-grid { grid-template-columns: 1fr; }
+      .topnav { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top nav -->
+  <nav class="topnav">
+    <a href="#" class="topnav-logo">media<span>.games</span></a>
+    <div class="topnav-sep"></div>
+    <span class="topnav-label">Documentation</span>
+    <div class="topnav-right">
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-toggle-icon active" id="theme-light">☀️</div>
+        <div class="theme-toggle-icon" id="theme-dark">🌙</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">How It Works</div>
+        <a href="#overview" class="sidebar-link active" onclick="showPage('overview', this)">Overview</a>
+        <a href="#collecting-news" class="sidebar-link" onclick="showPage('collecting-news', this)">Aggregating the News</a>
+        <a href="#public-interest" class="sidebar-link" onclick="showPage('public-interest', this)">Evaluating Public Interest</a>
+        <a href="#anomaly-detection" class="sidebar-link" onclick="showPage('anomaly-detection', this)">Detecting Anomalies</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Key Concepts</div>
+        <a href="#concept-topics" class="sidebar-link" onclick="showPage('concept-topics', this)">Stories &amp; Clusters</a>
+        <a href="#concept-pi" class="sidebar-link" onclick="showPage('concept-pi', this)">Public Interest</a>
+        <a href="#concept-coverage" class="sidebar-link" onclick="showPage('concept-coverage', this)">Coverage</a>
+        <a href="#concept-anomalies" class="sidebar-link" onclick="showPage('concept-anomalies', this)">Anomalies</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Reference</div>
+        <a href="#sources" class="sidebar-link" onclick="showPage('sources', this)">Sources</a>
+        <a href="#methodology" class="sidebar-link" onclick="showPage('methodology', this)">Methodology</a>
+      </div>
+
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- OVERVIEW -->
+      <div id="page-overview" class="section-page active">
+        <h1>media.games Documentation</h1>
+        <p class="page-subtitle">
+          Understand how media.games collects news, evaluates public interest, and detects coverage anomalies across the media landscape.
+        </p>
+
+        <h2>What is media.games?</h2>
+        <p>
+          media.games is a platform that monitors news coverage across dozens of major sources to surface
+          <strong>what the media is and isn't covering</strong>. We don't fact-check. We don't rate bias.
+          We observe coverage patterns in aggregate and detect anomalies — stories that are being
+          ignored, amplified, or covered in surprising ways.
+        </p>
+
+        <p>
+          The platform works in three stages:
+        </p>
+
+        <ol>
+          <li><strong>Collect</strong> — We ingest articles from 28 global news sources and group them into stories.</li>
+          <li><strong>Evaluate</strong> — Each story is assessed against transparent, auditable <a href="#public-interest" onclick="showPage('public-interest', this)">public interest criteria</a> using an LLM-based evaluator.</li>
+          <li><strong>Detect</strong> — We compare coverage patterns across sources to identify <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">anomalies</a> — gaps, amplifications, and distortions.</li>
+        </ol>
+
+        <div class="callout">
+          <div class="callout-label">Our principle</div>
+          We focus on <em>systems, not individuals</em>. The platform prioritizes institutional behavior
+          over individual incidents. This avoids distortion from cherry-picked crime stories,
+          culture-war outrage content, and celebrity controversies.
+        </div>
+      </div>
+
+      <!-- HOW WE COLLECT NEWS -->
+      <div id="page-collecting-news" class="section-page">
+        <h1>Aggregating the News</h1>
+        <p class="page-subtitle">
+          From raw articles to organized stories — how data flows through the platform.
+        </p>
+
+        <h2>Sources</h2>
+        <p>
+          We collect articles from <strong>28 news sources</strong> spanning US domestic, international,
+          left-leaning, right-leaning, and centrist perspectives. The full list is available on the
+          <a href="#sources" onclick="showPage('sources', this)">Sources</a> page.
+        </p>
+        <p>
+          Articles are ingested continuously via NewsAPI.ai, which provides headline, snippet, body text,
+          source, and publication time for each article.
+        </p>
+
+        <h2>Scope</h2>
+        <p>
+          Not every article enters the pipeline. We filter to <strong>in-scope</strong> content:
+          articles covering politics, business, health, environment, science, technology, and general news.
+          Sports, entertainment, and lifestyle content is classified as out-of-scope.
+        </p>
+
+        <h2>How Stories Are Grouped</h2>
+        <p>
+          A single news event is typically covered by many sources. Rather than treating each article
+          independently, we group articles about the same event into a <strong>cluster</strong>.
+        </p>
+        <p>
+          Clustering works by converting each article's text into a numerical representation
+          (an embedding) and grouping articles whose representations are highly similar.
+          This lets us see the same story across many sources simultaneously.
+        </p>
+
+        <div class="callout">
+          <div class="callout-label">Why this matters</div>
+          Clustering is what makes anomaly detection possible. Without it, we'd just have a list of articles.
+          With it, we can ask: "Which sources covered this story? Which didn't? How much attention did
+          each give it?"
+        </div>
+      </div>
+
+      <!-- EVALUATING PUBLIC INTEREST -->
+      <div id="page-public-interest" class="section-page">
+        <h1>Evaluating Public Interest</h1>
+        <p class="page-subtitle">
+          How we determine whether a story matters to the public — transparently and reproducibly.
+        </p>
+
+        <h2>Why evaluate public interest?</h2>
+        <p>
+          To detect anomalies in coverage, we need a consistent way to distinguish stories that matter
+          from noise. A celebrity breakup getting 200 articles isn't an anomaly — it's entertainment.
+          A regulatory change affecting millions getting 3 articles might be.
+        </p>
+        <p>
+          We use an LLM-based evaluator that assesses each story against four binary criteria.
+          The evaluation is deterministic, reproducible, and auditable — the prompt is versioned,
+          the model is recorded, and every result is stored.
+        </p>
+
+        <h2>The Four Criteria</h2>
+
+        <div class="criteria-grid">
+          <div class="criteria-card">
+            <h4><span class="criteria-num">1</span> Real-World Impact</h4>
+            <p>Does the story describe events that materially affect people's safety, health, economic conditions, civil rights, or security?</p>
+          </div>
+          <div class="criteria-card">
+            <h4><span class="criteria-num">2</span> Institutional Action</h4>
+            <p>Does the story focus on actions or decisions by governments, courts, regulators, legislatures, large corporations, or security forces?</p>
+          </div>
+          <div class="criteria-card">
+            <h4><span class="criteria-num">3</span> Widespread Impact</h4>
+            <p>Does the issue affect large populations or systems, rather than a small number of individuals?</p>
+          </div>
+          <div class="criteria-card">
+            <h4><span class="criteria-num">4</span> New Information</h4>
+            <p>Does the story report a new development, decision, event, or verified fact not previously publicly reported?</p>
+          </div>
+        </div>
+
+        <h2>The Gate Rule</h2>
+        <p>
+          A story qualifies as public interest when it meets <strong>at least 3 of the 4 criteria</strong>,
+          and at least one of those must be an <em>anchor criterion</em> — either Real-World Impact or
+          Institutional Action.
+        </p>
+
+        <div class="gate-rule">
+          <span class="comment">// A story qualifies as public interest when:</span><br>
+          <span class="keyword">criteria_met</span> <span class="op">>=</span> <span class="value">3</span><br>
+          <span class="op">AND</span> (<span class="keyword">real_world_impact</span> <span class="op">=</span> <span class="value">true</span> <span class="op">OR</span> <span class="keyword">institutional_action</span> <span class="op">=</span> <span class="value">true</span>)
+        </div>
+
+        <h2>Classification</h2>
+        <table class="class-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Criteria Met</th>
+              <th>Public Interest?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-left">High</span></td>
+              <td>4 of 4</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-us">Moderate</span></td>
+              <td>3 of 4 (with anchor)</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-center">Low</span></td>
+              <td>2 of 4</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-right">Not Public Interest</span></td>
+              <td>0–1 of 4</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <div class="callout-label">Transparency</div>
+          Every evaluation stores the full reasoning, the prompt version used, and the model version.
+          This means any result can be audited or re-evaluated.
+        </div>
+      </div>
+
+      <!-- HOW WE DETECT ANOMALIES -->
+      <div id="page-anomaly-detection" class="section-page">
+        <h1>Detecting Anomalies</h1>
+        <p class="page-subtitle">
+          Surfacing the stories the media is missing, amplifying, or covering in surprising patterns.
+        </p>
+
+        <h2>What is an anomaly?</h2>
+        <p>
+          An anomaly is a pattern in news coverage that deviates from what you'd expect.
+          High public interest stories that barely get covered. Low-value stories that dominate the news cycle.
+          Stories covered heavily by international sources but ignored domestically.
+        </p>
+        <p>
+          media.games uses a growing library of <strong>anomaly detectors</strong> — each one looks for a
+          specific type of coverage pattern. When a detector fires, it surfaces the story along with the
+          evidence: which sources covered it, how many articles, and what the public interest score was.
+        </p>
+        <p>
+          For the full list of detectors and their definitions, see <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">Anomalies</a> under Key Concepts.
+        </p>
+
+        <div class="callout">
+          <div class="callout-label">Growing over time</div>
+          The anomaly detection system is designed to be extensible. New detectors will be added as we
+          identify additional coverage patterns worth surfacing.
+        </div>
+      </div>
+
+      <!-- KEY CONCEPT: PUBLIC INTEREST -->
+      <div id="page-concept-pi" class="section-page">
+        <h1>Public Interest</h1>
+        <p class="page-subtitle">
+          A story is "public interest" if it helps the public understand how power is exercised,
+          how institutions affect people's lives, or what new facts about those systems have emerged.
+        </p>
+
+        <h2>What qualifies</h2>
+        <ul>
+          <li>War, economic shocks, public health crises, environmental disasters</li>
+          <li>Court rulings, legislation, regulatory enforcement, institutional failures</li>
+          <li>Major policy changes affecting large populations</li>
+          <li>New evidence, documents, or investigative revelations</li>
+        </ul>
+
+        <h2>What doesn't qualify</h2>
+        <ul>
+          <li>Celebrity activity, lifestyle, consumer products</li>
+          <li>Random crime, interpersonal disputes</li>
+          <li>Commentary that doesn't analyze real institutional actions</li>
+          <li>Historical retrospectives (unless revealing new evidence)</li>
+          <li>Reaction pieces or follow-ups repeating known facts</li>
+        </ul>
+
+        <p>
+          For the full evaluation process, see <a href="#public-interest" onclick="showPage('public-interest', this)">Evaluating Public Interest</a>.
+        </p>
+      </div>
+
+      <!-- KEY CONCEPT: COVERAGE -->
+      <div id="page-concept-coverage" class="section-page">
+        <h1>Coverage</h1>
+        <p class="page-subtitle">
+          How we measure the attention a story receives across sources.
+        </p>
+
+        <h2>Metrics</h2>
+        <table class="class-table">
+          <thead>
+            <tr><th>Metric</th><th>Definition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>article_count</code></td><td>Total articles about a story from a given source</td></tr>
+            <tr><td><code>pi_count</code></td><td>Articles classified as public interest</td></tr>
+            <tr><td><code>noise_count</code></td><td>Articles classified as not public interest</td></tr>
+            <tr><td><code>news_to_noise_ratio</code></td><td>Ratio of public interest articles to total articles (0.0 to 1.0)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>News-to-Noise Ratio</h2>
+        <p>
+          The news-to-noise ratio indicates how much of a source's coverage of a story is substantive
+          versus filler. A ratio of <strong>1.0</strong> means every article is public interest.
+          A ratio of <strong>0.0</strong> means none are.
+        </p>
+      </div>
+
+      <!-- KEY CONCEPT: TOPICS -->
+      <div id="page-concept-topics" class="section-page">
+        <h1>Stories &amp; Clusters</h1>
+        <p class="page-subtitle">
+          On media.games, a "story" isn't a single article — it's a cluster of articles about the same event.
+        </p>
+
+        <h2>How it works</h2>
+        <p>
+          When multiple sources report on the same event, their articles are grouped into a
+          <strong>cluster</strong>. Each cluster represents one real-world story and contains
+          every article covering it, regardless of source.
+        </p>
+
+        <h2>Why it matters</h2>
+        <p>
+          Clustering is what makes it possible to compare coverage across sources. It lets us answer
+          questions like: "Did Fox News cover this story? How about the BBC? How many articles did
+          each publish?"
+        </p>
+
+        <h2>Cluster size</h2>
+        <p>
+          The <strong>cluster size</strong> is the total number of articles grouped into a topic.
+          A cluster with 150 articles is a major story getting broad coverage.
+          A cluster with 3 articles is a niche story — or a potential <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">omission</a>.
+        </p>
+      </div>
+
+      <!-- KEY CONCEPT: ANOMALIES -->
+      <div id="page-concept-anomalies" class="section-page">
+        <h1>Anomalies</h1>
+        <p class="page-subtitle">
+          Patterns in coverage that deviate from what you'd expect — and what each detector looks for.
+        </p>
+
+        <h2>What is an anomaly?</h2>
+        <p>
+          An anomaly is a pattern in news coverage that deviates from what you'd expect.
+          High public interest stories that barely get covered. Low-value stories that dominate the news cycle.
+          Stories covered heavily by international sources but ignored domestically.
+        </p>
+        <p>
+          media.games uses a growing library of anomaly detectors — each one looks for a
+          specific type of coverage pattern. When a detector fires, it surfaces the story along with the
+          evidence: which sources covered it, how many articles, and what the public interest score was.
+        </p>
+
+        <h2>Detectors</h2>
+
+        <div id="detector-blindspot" class="detector-card">
+          <h3>Domestic Blindspot</h3>
+          <div class="formula">US story + public interest + zero US sources</div>
+          <p>
+            A story that is relevant to the US public interest but is not being covered by any US-based
+            source. Only international sources are reporting on it. This is the most extreme form of
+            coverage gap — the audience most affected by the story has no domestic media covering it.
+          </p>
+        </div>
+
+        <div id="detector-omission" class="detector-card">
+          <h3>Omission</h3>
+          <div class="formula">high public interest + low coverage</div>
+          <p>
+            A story that scores high on public interest criteria but has very few articles covering it
+            across all sources. These are important stories that the media ecosystem is largely ignoring.
+          </p>
+        </div>
+
+        <div id="detector-distraction" class="detector-card">
+          <h3>Distraction</h3>
+          <div class="formula">low public interest + high coverage</div>
+          <p>
+            A story that does not meet public interest criteria but is receiving heavy coverage anyway.
+            This pattern suggests media resources and audience attention are being consumed by stories
+            with limited civic value.
+          </p>
+        </div>
+
+        <div id="detector-clusterbomb" class="detector-card">
+          <h3>Clusterbomb</h3>
+          <div class="formula">low PI story + high coverage + inside a high PI cluster</div>
+          <p>
+            A low public interest story that surges in coverage within a cluster that otherwise
+            contains high public interest content. This can dilute attention from the substantive
+            stories in the same topic area — like a celebrity trial drowning out coverage of
+            judicial reform in the same "courts" cluster.
+          </p>
+        </div>
+
+        <div class="callout">
+          <div class="callout-label">Extensible</div>
+          This is the initial set of detectors. New detectors will be added over time as we
+          identify additional coverage patterns worth monitoring. Each will be documented here
+          with its definition and detection logic.
+        </div>
+      </div>
+
+      <!-- SOURCES -->
+      <div id="page-sources" class="section-page">
+        <h1>Sources</h1>
+        <p class="page-subtitle">
+          The 28 news sources currently monitored by media.games.
+        </p>
+
+        <p>
+          We selected sources to represent a range of editorial perspectives and geographies.
+          Bias data comes from three independent external providers — <strong>AllSides</strong>,
+          <strong>Ad Fontes Media</strong>, and <strong>Media Bias Fact Check</strong> — and is
+          used as metadata for coverage analysis, not as a judgment by our platform.
+        </p>
+
+        <div class="sources-table-wrap">
+          <table class="sources-table">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Geo</th>
+                <th>Composite Rating</th>
+                <th>Ad Fontes</th>
+                <th>AllSides</th>
+                <th>MBFC Factual</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="source-name">AP NEWS</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-0.3</td><td>-3.02</td><td>Very High</td></tr>
+              <tr><td class="source-name">ABC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-5</td><td>-1.5</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">Al Jazeera</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-8</td><td>-2.3</td><td>Mixed</td></tr>
+              <tr><td class="source-name">Axios</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-4</td><td>-1.2</td><td>High</td></tr>
+              <tr><td class="source-name">BBC</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>-1</td><td>-0.8</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">Bloomberg</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-3</td><td>-1</td><td>High</td></tr>
+              <tr><td class="source-name">CBS News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-6</td><td>-1.6</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">CNN</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-9</td><td>-1.8</td><td>Mixed</td></tr>
+              <tr><td class="source-name">Daily Wire</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>28</td><td>5.2</td><td>Mixed</td></tr>
+              <tr><td class="source-name">Fox News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-right">Right</span></td><td>17.4</td><td>3.27</td><td>Low</td></tr>
+              <tr><td class="source-name">Los Angeles Times</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7</td><td>-2.1</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">MS NOW</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-left">Left</span></td><td>-19</td><td>-5.08</td><td>Mixed</td></tr>
+              <tr><td class="source-name">NBC News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7</td><td>-1.7</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">NY Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>12</td><td>2.8</td><td>Mixed</td></tr>
+              <tr><td class="source-name">NYT</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7.4</td><td>-2.2</td><td>High</td></tr>
+              <tr><td class="source-name">National Review</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>22</td><td>4.5</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">Newsweek</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-1</td><td>-0.2</td><td>Mixed</td></tr>
+              <tr><td class="source-name">POLITICO</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-5</td><td>-1.2</td><td>High</td></tr>
+              <tr><td class="source-name">RT</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>24</td><td>3.8</td><td>Very Low</td></tr>
+              <tr><td class="source-name">Reuters</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>-0.85</td><td>Very High</td></tr>
+              <tr><td class="source-name">South China Morning Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0</td><td>Mixed</td></tr>
+              <tr><td class="source-name">The Guardian</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-11</td><td>-2.4</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">The Hill</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0.2</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">The Jerusalem Post</td><td><span class="tag tag-nonus">Non-US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>6</td><td>1.8</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">USA Today</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>0</td><td>0</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">WSJ</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-right">Lean Right</span></td><td>2.3</td><td>0.33</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">Washington Post</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-lean-left">Lean Left</span></td><td>-7.1</td><td>-1.63</td><td>Mostly Factual</td></tr>
+              <tr><td class="source-name">Yahoo News</td><td><span class="tag tag-us">US</span></td><td><span class="tag tag-center">Center</span></td><td>-3</td><td>-1</td><td>Mixed</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 6px;">
+          Bias data sourced from AllSides, Ad Fontes Media, and Media Bias Fact Check. Last verified: March 2026.
+        </p>
+
+        <h2>Source Groupings</h2>
+        <p>
+          For coverage gap analysis, sources are organized into groups. These groupings determine
+          how we calculate <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">coverage gaps</a>
+          and detect asymmetries in reporting.
+        </p>
+
+        <div class="grouping-tabs">
+          <button class="grouping-tab active" onclick="showGrouping('political', this)">By Political Lean</button>
+          <button class="grouping-tab" onclick="showGrouping('geo', this)">By Geography</button>
+        </div>
+
+        <div id="grouping-political" class="grouping-panel active">
+          <div class="group-section">
+            <div class="group-header group-left">Left</div>
+            <div class="group-outlets">
+              <span class="group-outlet">MS NOW</span>
+              <span class="group-outlet">AP NEWS</span>
+              <span class="group-outlet">Al Jazeera</span>
+              <span class="group-outlet">NYT</span>
+              <span class="group-outlet">Washington Post</span>
+              <span class="group-outlet">POLITICO</span>
+              <span class="group-outlet">CNN</span>
+              <span class="group-outlet">Los Angeles Times</span>
+              <span class="group-outlet">NBC News</span>
+              <span class="group-outlet">The Guardian</span>
+            </div>
+          </div>
+          <div class="group-section">
+            <div class="group-header group-center">Center</div>
+            <div class="group-outlets">
+              <span class="group-outlet">Reuters</span>
+              <span class="group-outlet">BBC</span>
+              <span class="group-outlet">South China Morning Post</span>
+              <span class="group-outlet">ABC News</span>
+              <span class="group-outlet">Axios</span>
+              <span class="group-outlet">Bloomberg</span>
+              <span class="group-outlet">CBS News</span>
+              <span class="group-outlet">Newsweek</span>
+              <span class="group-outlet">The Hill</span>
+              <span class="group-outlet">USA Today</span>
+              <span class="group-outlet">Yahoo News</span>
+            </div>
+          </div>
+          <div class="group-section">
+            <div class="group-header group-right">Right</div>
+            <div class="group-outlets">
+              <span class="group-outlet">Fox News</span>
+              <span class="group-outlet">WSJ</span>
+              <span class="group-outlet">NY Post</span>
+              <span class="group-outlet">National Review</span>
+              <span class="group-outlet">Daily Wire</span>
+              <span class="group-outlet">RT</span>
+              <span class="group-outlet">The Jerusalem Post</span>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 12px;">
+            <div class="callout-label">How this is used</div>
+            Political groupings power the <strong>pol gap</strong> metric:
+            <code>pol_skew = (left_count - right_count) / (left_count + right_count)</code>.
+            Center sources are excluded from this calculation.
+          </div>
+        </div>
+
+        <div id="grouping-geo" class="grouping-panel">
+          <div class="group-section">
+            <div class="group-header group-us">US</div>
+            <div class="group-outlets">
+              <span class="group-outlet">AP NEWS</span>
+              <span class="group-outlet">ABC News</span>
+              <span class="group-outlet">Axios</span>
+              <span class="group-outlet">Bloomberg</span>
+              <span class="group-outlet">CBS News</span>
+              <span class="group-outlet">CNN</span>
+              <span class="group-outlet">Daily Wire</span>
+              <span class="group-outlet">Fox News</span>
+              <span class="group-outlet">Los Angeles Times</span>
+              <span class="group-outlet">MS NOW</span>
+              <span class="group-outlet">NBC News</span>
+              <span class="group-outlet">NY Post</span>
+              <span class="group-outlet">NYT</span>
+              <span class="group-outlet">National Review</span>
+              <span class="group-outlet">Newsweek</span>
+              <span class="group-outlet">POLITICO</span>
+              <span class="group-outlet">The Hill</span>
+              <span class="group-outlet">USA Today</span>
+              <span class="group-outlet">WSJ</span>
+              <span class="group-outlet">Washington Post</span>
+              <span class="group-outlet">Yahoo News</span>
+            </div>
+          </div>
+          <div class="group-section">
+            <div class="group-header group-intl">Non-US</div>
+            <div class="group-outlets">
+              <span class="group-outlet">Al Jazeera</span>
+              <span class="group-outlet">BBC</span>
+              <span class="group-outlet">Reuters</span>
+              <span class="group-outlet">RT</span>
+              <span class="group-outlet">South China Morning Post</span>
+              <span class="group-outlet">The Guardian</span>
+              <span class="group-outlet">The Jerusalem Post</span>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 12px;">
+            <div class="callout-label">How this is used</div>
+            Geographic groupings power the <strong>geo gap</strong> metric:
+            <code>geo_skew = (us_count - nonus_count) / (us_count + nonus_count)</code>.
+            Stories with extreme geo skew may indicate <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">domestic blindspots</a>.
+          </div>
+        </div>
+      </div>
+
+      <!-- METHODOLOGY -->
+      <div id="page-methodology" class="section-page">
+        <h1>Methodology</h1>
+        <p class="page-subtitle">
+          Deep dives into how each system works, for those who want full transparency.
+        </p>
+
+        <details>
+          <summary>Public Interest Evaluation — Full Specification</summary>
+          <div class="details-content">
+            <p>
+              Each story is evaluated by an LLM (currently GPT-4o-mini) against four binary criteria.
+              The prompt is versioned, temperature is set to 0 for determinism, and every evaluation
+              stores the full reasoning, model version, and prompt version.
+            </p>
+            <p><strong>Criteria:</strong></p>
+            <ol>
+              <li><strong>material_impact</strong> — Does the story materially affect safety, health, economics, rights, or security?</li>
+              <li><strong>institutional_action</strong> — Does it focus on actions by governments, courts, regulators, large corporations?</li>
+              <li><strong>scope_scale</strong> — Does it affect large populations or systems?</li>
+              <li><strong>new_information</strong> — Does it report something new, not previously public?</li>
+            </ol>
+            <p><strong>Gate rule:</strong> <code>met_count >= 3 AND (material_impact OR institutional_action)</code></p>
+            <p>
+              Commentary and opinion only qualify if they analyze real institutional actions.
+              Historical stories fail unless revealing new evidence.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Bias Data Sources</summary>
+          <div class="details-content">
+            <p>
+              We don't rate bias ourselves. We use three independent external sources as metadata
+              on sources, which enables coverage gap analysis across political groups.
+            </p>
+            <p><strong>Sources and scales:</strong></p>
+            <ul>
+              <li><strong>AllSides</strong> — Bias meter, scale of -6 to +6</li>
+              <li><strong>Ad Fontes Media</strong> — Bias scale of -42 to +42, plus a reliability score</li>
+              <li><strong>Media Bias Fact Check</strong> — Bias scale of -10 to +10, plus a factual rating</li>
+            </ul>
+            <p><strong>Composite calculation:</strong> Each score is normalized to [-1, 1], the three are averaged, then converted back to the AllSides scale. Labels follow AllSides thresholds: Left (&le; -3), Lean Left (-3 to -1), Center (-1 to 1), Lean Right (1 to 3), Right (&ge; 3).</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Clustering Approach</summary>
+          <div class="details-content">
+            <p>
+              Articles are converted to vector embeddings and grouped by semantic similarity.
+              Articles whose embeddings fall within a similarity threshold are assigned to the same
+              cluster. Each cluster represents a single real-world story or event.
+            </p>
+            <p>
+              Cluster quality is validated using a heatmap that shows the topic-by-source matrix,
+              allowing manual inspection of whether grouped articles genuinely belong together.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Coverage Gap Analysis</summary>
+          <div class="details-content">
+            <p>Sources are grouped for gap analysis:</p>
+            <p><strong>Political groups:</strong></p>
+            <ul>
+              <li>Left: MSNBC, AP, Al Jazeera, NYT, WaPo, Politico, CNN, LA Times, NBC News, The Guardian</li>
+              <li>Center: Reuters, BBC, SCMP, ABC News, Axios, Bloomberg, CBS News, Newsweek, The Hill, USA Today, Yahoo News</li>
+              <li>Right: Fox News, WSJ, NY Post, National Review, Daily Wire, RT, Jerusalem Post</li>
+            </ul>
+            <p><strong>Geographic groups:</strong></p>
+            <ul>
+              <li>US: AP, MSNBC, Fox News, NYT, WaPo, Politico, WSJ, NY Post, National Review, Daily Wire, and others</li>
+              <li>Non-US: Reuters, BBC, Al Jazeera, SCMP, The Guardian, RT, Jerusalem Post</li>
+            </ul>
+            <p>
+              <code>pol_gap = left_count - right_count</code><br>
+              <code>geo_gap = us_count - nonus_count</code><br>
+              Magnitude reflects the size of the discrepancy. Direction indicates which group has more coverage.
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Limitations &amp; Known Gaps</summary>
+          <div class="details-content">
+            <p>We believe in being transparent about what the system doesn't do well:</p>
+            <ul>
+              <li>Coverage is limited to 28 English-language text sources — many perspectives are not represented</li>
+              <li><strong>Video news is not currently represented.</strong> Sources like cable news broadcasts, YouTube news channels, and video-first platforms are not included in the pipeline. Coverage analysis is based exclusively on published text articles.</li>
+              <li>LLM-based public interest evaluation, while reproducible, reflects the biases of the model</li>
+              <li>Clustering can occasionally merge distinct-but-related stories or split a single story across clusters</li>
+              <li>Article volume is a proxy for editorial attention, but doesn't capture placement, length, or tone</li>
+              <li>Bias ratings from external sources may lag behind editorial shifts at sources</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        media.games documentation. We observe coverage trends. We don't fact-check, and we don't rate bias.
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    function showPage(pageId, el) {
+      // Hide all pages
+      document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+
+      // Show target page
+      const target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+      // Find the matching sidebar link by href
+      const sidebarLink = document.querySelector('.sidebar-link[href="#' + pageId + '"]');
+      if (sidebarLink) sidebarLink.classList.add('active');
+
+      // Scroll to top of content
+      window.scrollTo(0, 0);
+
+      // Prevent default link behavior
+      if (event) event.preventDefault();
+    }
+
+    function showGrouping(groupId, btn) {
+      document.querySelectorAll('.grouping-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.grouping-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('grouping-' + groupId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', next);
+      document.getElementById('theme-light').classList.toggle('active', next === 'light');
+      document.getElementById('theme-dark').classList.toggle('active', next === 'dark');
+    }
+
+    // Handle hash-based navigation
+    if (window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const pageMap = {
+        'overview': 'overview',
+        'collecting-news': 'collecting-news',
+        'public-interest': 'public-interest',
+        'anomaly-detection': 'anomaly-detection',
+        'concept-topics': 'concept-topics',
+        'concept-pi': 'concept-pi',
+        'concept-coverage': 'concept-coverage',
+        'concept-anomalies': 'concept-anomalies',
+        'detector-blindspot': 'concept-anomalies',
+        'detector-omission': 'concept-anomalies',
+        'detector-distraction': 'concept-anomalies',
+        'detector-clusterbomb': 'concept-anomalies',
+        'sources': 'sources',
+        'methodology': 'methodology'
+      };
+      if (pageMap[hash]) {
+        document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('page-' + pageMap[hash]);
+        if (target) target.classList.add('active');
+        const sidebarLink = document.querySelector('.sidebar-link[href="#' + hash + '"]');
+        if (sidebarLink) {
+          document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+          sidebarLink.classList.add('active');
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>
