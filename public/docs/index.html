@@ -872,26 +872,41 @@
           <span class="op">AND</span> (<span class="keyword">real_world_impact</span> <span class="op">=</span> <span class="value">true</span> <span class="op">OR</span> <span class="keyword">institutional_action</span> <span class="op">=</span> <span class="value">true</span>)
         </div>
 
-        <h2>National Relevance</h2>
+        <h2>Filtering Geographic Relevance</h2>
         <p>
-          In addition to public interest, each story is independently flagged for <strong>national relevance</strong>
-          (<code>US_relevance</code>) — a separate boolean that indicates whether the story directly affects
-          the United States.
-        </p>
-        <p>
-          A story is nationally relevant if it directly affects U.S. governance, economy, security, or
-          population, or involves U.S. institutions or citizens. This flag is evaluated by the same LLM
-          alongside the four public interest criteria, but it is <strong>independent of the PI gate rule</strong> —
-          a story can be nationally relevant without being public interest, and vice versa.
+          In addition to public interest, each story is tagged with <strong>geographic relevance</strong> —
+          a set of independent boolean flags evaluated by the same LLM alongside the four PI criteria.
+          These flags are <strong>independent of the PI gate rule</strong> — a story can be nationally
+          relevant without being public interest, and vice versa.
         </p>
 
+        <table class="class-table">
+          <thead>
+            <tr><th>Flag</th><th>Evaluates</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>global_relevance</code></td>
+              <td>Does the story affect multiple countries, international systems, or have consequences beyond any single nation's borders?</td>
+            </tr>
+            <tr>
+              <td><code>US_relevance</code></td>
+              <td>Does the story directly affect U.S. governance, economy, security, or population, or involve U.S. institutions or citizens?</td>
+            </tr>
+            <tr>
+              <td><code>state_local_relevance</code></td>
+              <td>Does the story primarily affect a specific U.S. state, city, or locality rather than the nation as a whole?</td>
+            </tr>
+          </tbody>
+        </table>
+
         <div class="callout">
-          <div class="callout-label">Why a separate flag?</div>
-          The public interest evaluation has no geographic dimension. Without national relevance,
+          <div class="callout-label">Why geographic relevance?</div>
+          The public interest evaluation has no geographic dimension. Without these flags,
           foreign-only stories (e.g. UK local politics) that score high on PI would distort
           anomaly detection — particularly detectors like <a href="#concept-anomalies" onclick="showPage('concept-anomalies', this)">Domestic Blindspot</a>
-          that specifically look for gaps in US coverage. The national relevance flag lets us
-          distinguish globally-relevant PI from US-specific PI.
+          that specifically look for gaps in US coverage. Geographic relevance lets us
+          distinguish globally-relevant PI from US-specific PI from locally-scoped stories.
         </div>
 
         <h2>Classification</h2>
