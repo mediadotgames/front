@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media.games — Coverage Heatmap</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700&display=swap">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ══════════════════════════════════════════
+     LIGHT THEME — Muted Rust + Sage Olive
+     ══════════════════════════════════════════ */
+  [data-theme="light"] {
+    --bg: #FAF9F6;
+    --surface: #F0EDE8;
+    --surface-hover: #E8E4DD;
+    --surface-white: #fff;
+    --border: #DDD7CE;
+    --border-light: #E8E3DB;
+    --text: #2D2B28;
+    --text-secondary: #6B6560;
+    --text-tertiary: #9B958E;
+    --brand: #9C6A60;
+    --brand-bg: rgba(156,106,96,0.08);
+    --brand-border: rgba(156,106,96,0.3);
+    --accent: #7C8578;
+    --accent-bg: rgba(124,133,120,0.10);
+    --accent-border: rgba(124,133,120,0.3);
+    --link-hover: #9C6A60;
+    --gap-left: #5B7FA6;
+    --gap-right: #B86A5A;
+    --tag-bg: #EDEAE5;
+    --tag-border: #D8D3CB;
+    --drawer-shadow: 0 8px 32px rgba(45,43,40,0.12);
+    --row-hover: rgba(156,106,96,0.04);
+    --heat-outline: #9C6A60;
+    --heat-0-bg: transparent;        --heat-0-fg: transparent;
+    --heat-1-bg: rgba(156,106,96,0.07); --heat-1-fg: #9B958E;
+    --heat-2-bg: rgba(156,106,96,0.14); --heat-2-fg: #6B6560;
+    --heat-3-bg: rgba(156,106,96,0.22); --heat-3-fg: #6B6560;
+    --heat-4-bg: rgba(156,106,96,0.32); --heat-4-fg: #2D2B28;
+    --heat-5-bg: rgba(156,106,96,0.44); --heat-5-fg: #fff;
+    --heat-6-bg: rgba(156,106,96,0.60); --heat-6-fg: #fff;
+    --heat-7-bg: rgba(156,106,96,0.80); --heat-7-fg: #fff;
+    --status-dot: #7C8578;
+    --toggle-track: #DDD7CE;
+    --tooltip-bg: #fff;
+    --tooltip-shadow: 0 4px 16px rgba(45,43,40,0.12);
+    --focus-ring: rgba(156,106,96,0.15);
+  }
+
+  /* ══════════════════════════════════════════
+     DARK THEME — Black + Green
+     ══════════════════════════════════════════ */
+  [data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #1e2030;
+    --surface-hover: #282a3a;
+    --surface-white: #161822;
+    --border: #2a2d3a;
+    --border-light: #1e2030;
+    --text: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #666;
+    --brand: #4ade80;
+    --brand-bg: rgba(74,222,128,0.08);
+    --brand-border: rgba(74,222,128,0.3);
+    --accent: #6366f1;
+    --accent-bg: rgba(99,102,241,0.10);
+    --accent-border: rgba(99,102,241,0.3);
+    --link-hover: #4ade80;
+    --gap-left: #60a5fa;
+    --gap-right: #f87171;
+    --tag-bg: #1e2030;
+    --tag-border: #2a2d3a;
+    --drawer-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --row-hover: rgba(99,102,241,0.06);
+    --heat-outline: #6366f1;
+    --heat-0-bg: rgba(255,255,255,0.02); --heat-0-fg: #333;
+    --heat-1-bg: rgba(34,197,94,0.10);   --heat-1-fg: #4ade80;
+    --heat-2-bg: rgba(34,197,94,0.18);   --heat-2-fg: #4ade80;
+    --heat-3-bg: rgba(34,197,94,0.28);   --heat-3-fg: #22c55e;
+    --heat-4-bg: rgba(34,197,94,0.38);   --heat-4-fg: #16a34a;
+    --heat-5-bg: rgba(34,197,94,0.52);   --heat-5-fg: #fff;
+    --heat-6-bg: rgba(34,197,94,0.68);   --heat-6-fg: #fff;
+    --heat-7-bg: rgba(34,197,94,0.85);   --heat-7-fg: #fff;
+    --status-dot: #4ade80;
+    --toggle-track: #2a2d3a;
+    --tooltip-bg: #1e2030;
+    --tooltip-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    --focus-ring: rgba(99,102,241,0.2);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: auto;
+    line-height: 1.5;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── Row 1: Top nav ── */
+  .site-header {
+    background: var(--surface-white);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.3s;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .site-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .site-header h1 span { color: var(--brand); }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .header-nav a {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .header-nav a:hover { background: var(--surface); color: var(--text); }
+  .header-nav a.active {
+    background: var(--brand-bg);
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .nav-sep {
+    color: var(--border);
+    font-size: 14px;
+    user-select: none;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .theme-toggle:hover { background: var(--surface-hover); }
+  .theme-icon {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .theme-icon.active { background: var(--brand-bg); color: var(--brand); }
+  .theme-icon:not(.active) { color: var(--text-tertiary); }
+
+  /* ── Row 2: Search bar row ── */
+  .search-row {
+    background: var(--surface-white);
+    border-bottom: none;
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.3s;
+  }
+  .search-bar {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-bar input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px 10px 40px;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.15s;
+  }
+  .search-bar input:focus {
+    outline: none;
+    border-color: var(--brand);
+    background: var(--surface-white);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .search-bar input::placeholder { color: var(--text-tertiary); }
+  .search-bar svg {
+    position: absolute;
+    left: 13px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+  .search-count {
+    position: absolute;
+    right: 14px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  /* ── Trending bar ── */
+  .trending-bar {
+    background: var(--surface-white);
+    border-bottom: none;
+    padding: 2px 32px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s;
+  }
+  .trending-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .trending-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .trending-link {
+    font-size: 13px;
+    color: var(--gap-left);
+    cursor: pointer;
+    text-decoration: none;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .trending-link:hover {
+    background: var(--accent-bg);
+    text-decoration: underline;
+  }
+  .trending-sep {
+    color: var(--border);
+    font-size: 11px;
+    user-select: none;
+  }
+
+  .tb-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .tb-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .tb-btn.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .tb-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .tb-count {
+    background: var(--brand-bg);
+    color: var(--brand);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ── Row 3: Quick filters + View toggle ── */
+  .filters-row {
+    background: var(--surface-white);
+    border-bottom: none;
+    padding: 12px 32px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: background 0.3s;
+  }
+  .filters-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .filters-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .qf-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .qf-chip:hover { background: var(--surface-hover); }
+  .qf-chip.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .view-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 28px 6px 12px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6560' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    font-family: inherit;
+  }
+  .view-select:hover { background-color: var(--surface-hover); }
+  .view-select:focus { outline: 2px solid var(--focus-ring); }
+  [data-theme="dark"] .view-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+
+
+  /* ── Drawer panels ── */
+  .drawer-anchor { position: relative; }
+
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(45,43,40,0.15);
+    z-index: 50;
+  }
+  [data-theme="dark"] .drawer-overlay { background: rgba(0,0,0,0.4); }
+  .drawer-overlay.visible { display: block; }
+
+  .drawer {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 600px;
+    background: var(--surface-white);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    box-shadow: var(--drawer-shadow);
+    z-index: 60;
+    padding: 20px 24px;
+    max-height: 480px;
+    overflow-y: auto;
+    transition: background 0.3s;
+  }
+  .drawer.visible { display: block; }
+
+  .drawer-section { margin-bottom: 18px; }
+  .drawer-section:last-child { margin-bottom: 0; }
+  .drawer-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .drawer-col-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-col-subtitle {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+
+  /* ── Source selector ── */
+  .outlet-group { margin-bottom: 14px; }
+  .outlet-group:last-child { margin-bottom: 0; }
+  .outlet-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .outlet-group-header input[type="checkbox"] {
+    accent-color: var(--brand);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+  .outlet-group-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .outlet-group-count {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .outlet-group-bias-bar {
+    flex: 1;
+    height: 2px;
+    border-radius: 1px;
+    margin-left: 8px;
+  }
+  .bias-bar-left { background: var(--gap-left); }
+  .bias-bar-leanleft { background: #8BADC4; }
+  .bias-bar-center { background: var(--text-tertiary); }
+  .bias-bar-leanright { background: #CB9D8F; }
+  .bias-bar-right { background: var(--gap-right); }
+
+  .outlet-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-left: 23px;
+  }
+  .outlet-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .outlet-chip:hover { background: var(--surface-hover); }
+  .outlet-chip.selected {
+    background: var(--brand-bg);
+    border-color: var(--brand);
+    color: var(--brand);
+    font-weight: 500;
+  }
+  .outlet-chip input[type="checkbox"] {
+    accent-color: var(--brand);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+  }
+
+  /* ── Filter chips ── */
+  .filter-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .filter-chip:hover { background: var(--surface-hover); }
+  .filter-chip.selected {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .filter-chip input[type="checkbox"] { accent-color: var(--accent); width: 13px; height: 13px; }
+
+  /* ── Time chips ── */
+  .time-chips { display: flex; gap: 6px; }
+  .time-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .time-chip:hover { background: var(--surface-hover); }
+  .time-chip.selected {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── PI toggle ── */
+  .pi-toggle { display: flex; align-items: center; gap: 10px; }
+  .toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; }
+  .toggle-switch input { display: none; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--toggle-track);
+    border-radius: 11px;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    top: 2px; left: 2px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .pi-label { font-size: 13px; color: var(--text); }
+  .pi-sublabel { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+
+  /* ── Heatmap ── */
+  .heatmap-container { padding: 0; overflow-x: auto; }
+  .heatmap-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 1200px;
+    font-size: 13px;
+    font-family: 'Source Serif 4', 'Georgia', serif;
+  }
+
+  /* Sticky meta columns */
+  .heatmap-table .sticky-col {
+    position: sticky;
+    z-index: 5;
+    background: var(--surface-white);
+  }
+  .heatmap-table tbody .sticky-col { background: var(--bg); }
+  .heatmap-table tbody tr:hover .sticky-col { background: var(--row-hover); }
+  .sticky-col-0 { left: 0; min-width: 28px; }
+  .sticky-col-1 { left: 28px; min-width: 260px; }
+  .sticky-col-2 { left: 288px; min-width: 50px; }
+  .sticky-col-3 { left: 338px; min-width: 70px; }
+  .sticky-col-4 { left: 408px; min-width: 40px; }
+  .sticky-col-5 { left: 448px; min-width: 40px; }
+  .sticky-col-6 { left: 488px; min-width: 50px; box-shadow: 2px 0 4px rgba(0,0,0,0.04); }
+
+  .bias-group-row th {
+    padding: 6px 0 2px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: none;
+    text-align: center;
+    background: var(--surface-white);
+    transition: background 0.3s;
+  }
+  .bg-left { color: var(--gap-left); }
+  .bg-leanleft { color: #7A9DB8; }
+  .bg-center { color: var(--text-tertiary); }
+  .bg-leanright { color: #C08D7D; }
+  .bg-right { color: var(--gap-right); }
+  .bg-meta { color: transparent; }
+  [data-theme="dark"] .bg-leanleft { color: #93c5fd; }
+  [data-theme="dark"] .bg-leanright { color: #fca5a5; }
+
+  .heatmap-table thead th {
+    background: var(--surface-white);
+    padding: 6px 4px;
+    font-weight: 600;
+    font-size: 11px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+    text-align: center;
+    white-space: nowrap;
+    z-index: 10;
+    transition: background 0.3s;
+  }
+  .heatmap-table thead th.meta-col {
+    text-align: left;
+    padding-left: 12px;
+    min-width: 50px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .heatmap-table thead th.meta-col:hover { color: var(--brand); }
+  .meta-col .sort-arrow { font-size: 9px; margin-left: 2px; opacity: 0.4; }
+  .meta-col.sorted .sort-arrow { opacity: 1; color: var(--brand); }
+  .heatmap-table thead th.cluster-col { min-width: 260px; max-width: 360px; }
+  .heatmap-table thead th.outlet-col {
+    min-width: 44px; max-width: 56px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    height: 72px;
+    vertical-align: bottom;
+    padding: 6px 2px;
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .heatmap-table thead th.outlet-col:hover { color: var(--brand); }
+
+  .heatmap-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.1s;
+  }
+  .heatmap-table tbody tr:hover { background: var(--row-hover); }
+  .heatmap-table tbody td { padding: 6px 4px; text-align: center; font-variant-numeric: tabular-nums; }
+  .heatmap-table tbody td.meta-cell { text-align: left; padding-left: 12px; color: var(--text-secondary); }
+  .heatmap-table tbody td.cluster-cell {
+    text-align: left; padding-left: 12px;
+    max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text); font-weight: 500; cursor: pointer;
+  }
+  .cluster-link {
+    color: inherit; text-decoration: none;
+    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .cluster-link:hover { color: var(--link-hover); text-decoration: underline; }
+  .heatmap-table tbody td.size-cell { font-weight: 700; color: var(--text); }
+  .heatmap-table tbody td.category-cell {
+    font-size: 11px; color: var(--text-tertiary);
+    max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .heatmap-table tbody td.num-cell { text-align: right; padding-right: 10px; min-width: 48px; font-weight: 500; }
+
+  .gap-positive { color: var(--gap-left); }
+  .gap-negative { color: var(--gap-right); }
+  .gap-zero { color: var(--text-tertiary); }
+
+  .noise-low { color: var(--accent); }
+  .noise-med { color: var(--text-secondary); }
+  .noise-high { color: var(--gap-right); font-weight: 600; }
+
+  .heat-cell {
+    min-width: 44px; font-size: 12px; font-weight: 500;
+    cursor: pointer; position: relative;
+    transition: all 0.1s; border-radius: 2px;
+  }
+  .heat-cell:hover { outline: 2px solid var(--heat-outline); outline-offset: -1px; z-index: 5; }
+  .heat-0 { background: var(--heat-0-bg); color: var(--heat-0-fg); }
+  .heat-1 { background: var(--heat-1-bg); color: var(--heat-1-fg); }
+  .heat-2 { background: var(--heat-2-bg); color: var(--heat-2-fg); }
+  .heat-3 { background: var(--heat-3-bg); color: var(--heat-3-fg); }
+  .heat-4 { background: var(--heat-4-bg); color: var(--heat-4-fg); }
+  .heat-5 { background: var(--heat-5-bg); color: var(--heat-5-fg); }
+  .heat-6 { background: var(--heat-6-bg); color: var(--heat-6-fg); font-weight: 700; }
+  .heat-7 { background: var(--heat-7-bg); color: var(--heat-7-fg); font-weight: 700; }
+
+  .tooltip {
+    display: none; position: fixed;
+    background: var(--tooltip-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    font-size: 13px; color: var(--text);
+    z-index: 1000; pointer-events: none; max-width: 300px;
+    box-shadow: var(--tooltip-shadow); transition: background 0.3s;
+  }
+  .tooltip.visible { display: block; }
+  .tooltip .tt-outlet { color: var(--brand); font-weight: 600; font-size: 14px; }
+  .tooltip .tt-cluster { color: var(--text-tertiary); font-size: 12px; margin-top: 2px; }
+  .tooltip .tt-count { font-size: 22px; font-weight: 700; color: var(--text); margin: 6px 0 2px; }
+  .tooltip .tt-label { font-size: 11px; color: var(--text-tertiary); }
+
+  .row-num { color: var(--text-tertiary); font-size: 11px; min-width: 28px; text-align: right; padding-right: 6px; }
+
+  .divider-col {
+    width: 2px !important; min-width: 2px !important; max-width: 2px !important;
+    padding: 0 !important; border: none !important; background: var(--border-light);
+  }
+
+  .footer {
+    padding: 20px 32px; font-size: 12px;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+  }
+
+  /* ── Search feedback ── */
+  .search-feedback {
+    display: none;
+    padding: 6px 32px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--surface-white);
+    border-bottom: none;
+    transition: background 0.3s;
+  }
+  .search-feedback.visible { display: block; }
+  .search-feedback strong { color: var(--brand); font-weight: 600; }
+
+  /* ── Preset toggles in drawer ── */
+  .preset-toggles {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .preset-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .preset-toggle:hover { background: var(--surface-hover); }
+  .preset-toggle.active {
+    background: var(--brand-bg);
+    border-color: var(--brand);
+    color: var(--brand);
+    font-weight: 500;
+  }
+  .preset-toggle input[type="checkbox"] {
+    accent-color: var(--brand);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+  }
+
+  .toolbar-wrapper { position: relative; }
+</style>
+</head>
+<body>
+
+<!-- ═══ ROW 1: Top nav ═══ -->
+<div class="site-header">
+  <div class="header-left">
+    <h1>media<span>.games</span></h1>
+    <nav class="header-nav">
+      <a href="#" class="active">Heatmap</a>
+      <span class="nav-sep">|</span>
+      <a href="#">Anomalies</a>
+      <span class="nav-sep">|</span>
+      <a href="#">Leaderboard</a>
+      <span class="nav-sep">|</span>
+      <a href="#">Public Docs</a>
+      <span class="nav-sep">|</span>
+      <a href="#">About</a>
+    </nav>
+  </div>
+  <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+    <span class="theme-icon active" id="iconLight" title="Light mode">&#9788;</span>
+    <span class="theme-icon" id="iconDark" title="Dark mode">&#9790;</span>
+  </div>
+</div>
+
+<!-- ═══ ROW 2: Search bar + Sources & Advanced Filters buttons ═══ -->
+<div class="toolbar-wrapper">
+  <div class="search-row">
+    <div class="search-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search for topics, events & sources">
+      <span class="search-count" id="searchCount">344 / 344</span>
+    </div>
+
+    <button class="tb-btn" id="btnSources" onclick="toggleDrawer('sources')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Sources
+      <span class="tb-count" id="sourceCount">10</span>
+    </button>
+
+    <button class="tb-btn" id="btnFilters" onclick="toggleDrawer('filters')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="6" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg>
+      Advanced Filters
+    </button>
+  </div>
+
+  <!-- ── Sources Drawer ── -->
+  <div class="drawer" id="drawerSources">
+    <div class="drawer-col-title">
+      Select Sources
+      <span class="drawer-col-subtitle" id="sourceSummary">10 of 28 selected</span>
+    </div>
+
+    <div class="preset-toggles">
+      <label class="preset-toggle" id="presetWH">
+        <input type="checkbox" onchange="togglePreset('wh', this.checked)"> WH Press Corps sources only
+      </label>
+      <label class="preset-toggle" id="presetUS">
+        <input type="checkbox" onchange="togglePreset('us', this.checked)"> US sources only
+      </label>
+    </div>
+
+    <div class="outlet-group">
+      <div class="outlet-group-header">
+        <input type="checkbox" id="grpLeft" onchange="toggleGroup('left', this.checked)">
+        <label class="outlet-group-label" for="grpLeft">Left</label>
+        <span class="outlet-group-count">4 sources</span>
+        <div class="outlet-group-bias-bar bias-bar-left"></div>
+      </div>
+      <div class="outlet-chips" id="chipsLeft">
+        <label class="outlet-chip" data-outlet="MSNBC"><input type="checkbox"> MS NOW</label>
+        <label class="outlet-chip selected" data-outlet="Guardian"><input type="checkbox" checked> Guardian</label>
+        <label class="outlet-chip selected" data-outlet="CNN"><input type="checkbox" checked> CNN</label>
+        <label class="outlet-chip" data-outlet="Al Jazeera"><input type="checkbox"> Al Jazeera</label>
+      </div>
+    </div>
+
+    <div class="outlet-group">
+      <div class="outlet-group-header">
+        <input type="checkbox" id="grpLeanLeft" onchange="toggleGroup('leanleft', this.checked)">
+        <label class="outlet-group-label" for="grpLeanLeft">Lean Left</label>
+        <span class="outlet-group-count">7 sources</span>
+        <div class="outlet-group-bias-bar bias-bar-leanleft"></div>
+      </div>
+      <div class="outlet-chips" id="chipsLeanLeft">
+        <label class="outlet-chip selected" data-outlet="NYT"><input type="checkbox" checked> NYT</label>
+        <label class="outlet-chip selected" data-outlet="WaPo"><input type="checkbox" checked> WaPo</label>
+        <label class="outlet-chip" data-outlet="LA Times"><input type="checkbox"> LA Times</label>
+        <label class="outlet-chip" data-outlet="NBC"><input type="checkbox"> NBC</label>
+        <label class="outlet-chip" data-outlet="CBS"><input type="checkbox"> CBS</label>
+        <label class="outlet-chip" data-outlet="ABC"><input type="checkbox"> ABC</label>
+        <label class="outlet-chip" data-outlet="Politico"><input type="checkbox"> Politico</label>
+      </div>
+    </div>
+
+    <div class="outlet-group">
+      <div class="outlet-group-header">
+        <input type="checkbox" id="grpCenter" onchange="toggleGroup('center', this.checked)">
+        <label class="outlet-group-label" for="grpCenter">Center</label>
+        <span class="outlet-group-count">10 sources</span>
+        <div class="outlet-group-bias-bar bias-bar-center"></div>
+      </div>
+      <div class="outlet-chips" id="chipsCenter">
+        <label class="outlet-chip" data-outlet="Axios"><input type="checkbox"> Axios</label>
+        <label class="outlet-chip" data-outlet="Bloomberg"><input type="checkbox"> Bloomberg</label>
+        <label class="outlet-chip" data-outlet="Yahoo"><input type="checkbox"> Yahoo</label>
+        <label class="outlet-chip" data-outlet="BBC"><input type="checkbox"> BBC</label>
+        <label class="outlet-chip" data-outlet="Newsweek"><input type="checkbox"> Newsweek</label>
+        <label class="outlet-chip selected" data-outlet="AP"><input type="checkbox" checked> AP</label>
+        <label class="outlet-chip selected" data-outlet="Reuters"><input type="checkbox" checked> Reuters</label>
+        <label class="outlet-chip" data-outlet="SCMP"><input type="checkbox"> SCMP</label>
+        <label class="outlet-chip" data-outlet="The Hill"><input type="checkbox"> The Hill</label>
+        <label class="outlet-chip" data-outlet="USA Today"><input type="checkbox"> USA Today</label>
+      </div>
+    </div>
+
+    <div class="outlet-group">
+      <div class="outlet-group-header">
+        <input type="checkbox" id="grpLeanRight" onchange="toggleGroup('leanright', this.checked)">
+        <label class="outlet-group-label" for="grpLeanRight">Lean Right</label>
+        <span class="outlet-group-count">3 sources</span>
+        <div class="outlet-group-bias-bar bias-bar-leanright"></div>
+      </div>
+      <div class="outlet-chips" id="chipsLeanRight">
+        <label class="outlet-chip selected" data-outlet="WSJ"><input type="checkbox" checked> WSJ</label>
+        <label class="outlet-chip" data-outlet="J Post"><input type="checkbox"> J Post</label>
+        <label class="outlet-chip selected" data-outlet="NY Post"><input type="checkbox" checked> NY Post</label>
+      </div>
+    </div>
+
+    <div class="outlet-group">
+      <div class="outlet-group-header">
+        <input type="checkbox" id="grpRight" onchange="toggleGroup('right', this.checked)">
+        <label class="outlet-group-label" for="grpRight">Right</label>
+        <span class="outlet-group-count">4 sources</span>
+        <div class="outlet-group-bias-bar bias-bar-right"></div>
+      </div>
+      <div class="outlet-chips" id="chipsRight">
+        <label class="outlet-chip selected" data-outlet="Fox News"><input type="checkbox" checked> Fox News</label>
+        <label class="outlet-chip" data-outlet="Natl Review"><input type="checkbox"> Natl Review</label>
+        <label class="outlet-chip" data-outlet="RT"><input type="checkbox"> RT</label>
+        <label class="outlet-chip selected" data-outlet="Daily Wire"><input type="checkbox" checked> Daily Wire</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Advanced Filters Drawer ── -->
+  <div class="drawer" id="drawerFilters">
+    <div class="drawer-col-title">Advanced Filters</div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Time Range</div>
+      <div class="time-chips">
+        <span class="time-chip">Last 24h</span>
+        <span class="time-chip">Last 48h</span>
+        <span class="time-chip selected">Last 7 days</span>
+        <span class="time-chip">Last 30 days</span>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Categories</div>
+      <div class="filter-row">
+        <label class="filter-chip selected"><input type="checkbox" checked> Politics</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Business</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> World</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Technology</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Health</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Science</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Environment</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Entertainment</label>
+        <label class="filter-chip"><input type="checkbox"> Sports</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> General</label>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Geographic Relevance</div>
+      <div class="filter-row">
+        <label class="filter-chip selected"><input type="checkbox" checked> US</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Global</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> Foreign</label>
+        <label class="filter-chip selected"><input type="checkbox" checked> State &amp; Local</label>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Public Interest</div>
+      <div class="pi-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <div>
+          <div class="pi-label">Show public interest stories only</div>
+          <div class="pi-sublabel">Filter out gossip, celebrity news, and low-impact coverage</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Minimum Cluster Size</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <input type="range" min="1" max="20" value="4" id="clusterSlider" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('clusterVal').textContent=this.value+'+'">
+        <span id="clusterVal" style="font-size:14px;font-weight:600;color:var(--text);min-width:28px;">4+</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
+
+<!-- ═══ Trending Now ═══ -->
+<div class="trending-bar">
+  <span class="trending-label">Trending now</span>
+  <div class="trending-links">
+    <a class="trending-link" onclick="fillSearch('eu')">eu</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('trump')">trump</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('tariffs')">tariffs</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('AI')">ai</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('rate cut')">rate cut</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('bird flu')">bird flu</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('Ukraine')">ukraine</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('Gaza')">gaza</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('immigration bill')">immigration bill</a>
+    <span class="trending-sep">·</span>
+    <a class="trending-link" onclick="fillSearch('wildfire')">wildfire</a>
+  </div>
+</div>
+
+<!-- ═══ ROW 3: Quick filters + View toggle ═══ -->
+<div class="filters-row">
+  <div class="filters-left">
+    <span class="trending-label">Quick filters</span>
+    <span class="qf-chip" onclick="this.classList.toggle('active')">For politics</span>
+    <span class="qf-chip" onclick="this.classList.toggle('active')">Public interest only</span>
+    <span class="qf-chip" onclick="this.classList.toggle('active')">US focus only</span>
+    <span class="qf-chip active" onclick="this.classList.toggle('active')">Excl. sports</span>
+    <span class="qf-chip" onclick="this.classList.toggle('active')">Last 24h</span>
+    <span class="qf-chip active" onclick="this.classList.toggle('active')">Last 7 days</span>
+  </div>
+  <div class="filters-right">
+    <select class="view-select" id="viewSelect" onchange="setView(this.value)">
+      <option value="outlets-bias" selected>Outlets by Bias</option>
+      <option value="outlets-region">Outlets by Region</option>
+      <option value="bias">Grouped by Bias</option>
+      <option value="region">Grouped by Region</option>
+    </select>
+  </div>
+</div>
+
+<!-- ═══ Search feedback ═══ -->
+<div class="search-feedback" id="searchFeedback">
+  Showing news clusters matching: <strong id="searchTerm"></strong>
+</div>
+
+<!-- ═══ Heatmap table ═══ -->
+<div class="heatmap-container">
+<table class="heatmap-table" id="heatmapTable">
+<thead id="heatmapHead"></thead>
+<tbody id="heatmapBody"></tbody>
+</table>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-outlet"></div>
+  <div class="tt-cluster"></div>
+  <div class="tt-count"></div>
+  <div class="tt-label">articles in cluster</div>
+</div>
+
+<div class="footer">
+  media.games · Coverage heatmap · Sources ordered by Ad Fontes Media bias score (left → right)
+</div>
+
+<script>
+// ── Theme ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  document.getElementById('iconLight').classList.toggle('active', next === 'light');
+  document.getElementById('iconDark').classList.toggle('active', next === 'dark');
+}
+
+// ── Data ──
+const defaultOutlets = [
+  'Guardian','CNN','|',
+  'NYT','WaPo','|',
+  'AP','Reuters','|',
+  'WSJ','NY Post','|',
+  'Fox News','Daily Wire'
+];
+
+const clusters = [
+  { label: "Trump announces 25% tariffs on all EU imports", size: 187, cat: "politics", polGap: 12, geoGap: 8, noise: 0.24,
+    url: "https://apnews.com/article/trump-eu-tariffs-25-percent",
+    data: [3,8, 9,7, 8,7, 6,5, 8,3] },
+  { label: "Ukraine counteroffensive gains ground near Zaporizhzhia", size: 156, cat: "world", polGap: -2, geoGap: -6, noise: 0.11,
+    url: "https://reuters.com/world/ukraine-counteroffensive-zaporizhzhia",
+    data: [5,6, 7,6, 7,8, 4,2, 3,1] },
+  { label: "Senate passes bipartisan AI regulation framework", size: 148, cat: "politics", polGap: 8, geoGap: 9, noise: 0.18,
+    url: "https://nytimes.com/2026/03/15/us/politics/senate-ai-regulation.html",
+    data: [2,7, 8,6, 6,5, 5,2, 4,1] },
+  { label: "Fed signals potential rate cut in May meeting", size: 142, cat: "business", polGap: 1, geoGap: 3, noise: 0.15,
+    url: "https://wsj.com/economy/central-banking/fed-rate-cut-may",
+    data: [1,4, 5,4, 5,6, 7,2, 4,1] },
+  { label: "Gaza ceasefire negotiations resume in Cairo", size: 141, cat: "world", polGap: 5, geoGap: -4, noise: 0.09,
+    url: "https://aljazeera.com/news/gaza-ceasefire-cairo-negotiations",
+    data: [6,5, 7,5, 6,7, 3,2, 3,1] },
+  { label: "California wildfire forces 50,000 evacuations", size: 138, cat: "general", polGap: 3, geoGap: 10, noise: 0.31,
+    url: "https://latimes.com/california/story/wildfire-evacuations-50000",
+    data: [1,6, 5,4, 5,4, 3,4, 4,2] },
+  { label: "China launches new space station module", size: 127, cat: "science", polGap: -1, geoGap: -8, noise: 0.06,
+    url: "https://reuters.com/science/china-space-station-module-launch",
+    data: [2,3, 3,2, 4,5, 2,1, 2,0] },
+  { label: "Supreme Court hears arguments on social media censorship", size: 124, cat: "politics", polGap: -6, geoGap: 8, noise: 0.22,
+    url: "https://washingtonpost.com/politics/courts/supreme-court-social-media",
+    data: [1,4, 4,4, 4,3, 4,4, 6,5] },
+  { label: "NHS crisis deepens as waiting lists hit record", size: 118, cat: "health", polGap: 1, geoGap: -9, noise: 0.08,
+    url: "https://theguardian.com/society/nhs-waiting-lists-record",
+    data: [5,1, 2,1, 3,4, 1,0, 0,0] },
+  { label: "Boeing 737 MAX faces new safety audit after incidents", size: 114, cat: "business", polGap: 2, geoGap: 2, noise: 0.19,
+    url: "https://nytimes.com/2026/03/14/business/boeing-737-max-safety-audit.html",
+    data: [1,4, 4,3, 4,5, 3,2, 3,1] },
+  { label: "Immigration bill stalls in House amid GOP divisions", size: 110, cat: "politics", polGap: -7, geoGap: 9, noise: 0.27,
+    url: "https://politico.com/news/immigration-bill-house-gop-divisions",
+    data: [0,4, 3,3, 3,2, 2,4, 6,4] },
+  { label: "EU approves landmark digital markets enforcement", size: 98, cat: "technology", polGap: 3, geoGap: -5, noise: 0.12,
+    url: "https://reuters.com/technology/eu-digital-markets-enforcement",
+    data: [3,2, 3,2, 3,4, 2,1, 1,0] },
+  { label: "Bird flu outbreak spreads to dairy farms in 4 states", size: 92, cat: "health", polGap: 4, geoGap: 7, noise: 0.14,
+    url: "https://apnews.com/article/bird-flu-dairy-farms-outbreak",
+    data: [0,3, 3,3, 3,3, 1,1, 2,1] },
+  { label: "Tesla recalls 200K vehicles over autopilot concerns", size: 88, cat: "business", polGap: 0, geoGap: 4, noise: 0.41,
+    url: "https://cnbc.com/tesla-recall-200k-autopilot-concerns",
+    data: [1,3, 3,2, 3,3, 2,2, 2,1] },
+  { label: "Israel reshaping Lebanon border zone as buffer", size: 85, cat: "world", polGap: -3, geoGap: -5, noise: 0.07,
+    url: "https://nytimes.com/2026/03/13/world/middleeast/israel-lebanon-border.html",
+    data: [3,2, 3,2, 3,4, 2,1, 2,0] },
+  { label: "Medicaid cuts threaten rural hospital closures", size: 78, cat: "health", polGap: 9, geoGap: 8, noise: 0.05,
+    url: "https://washingtonpost.com/health/medicaid-cuts-rural-hospitals",
+    data: [0,3, 3,3, 2,2, 1,1, 0,0] },
+  { label: "North Korea tests new ICBM amid stalled diplomacy", size: 72, cat: "world", polGap: 0, geoGap: -3, noise: 0.10,
+    url: "https://bbc.com/news/world-asia-north-korea-icbm-test",
+    data: [1,2, 2,2, 3,3, 1,1, 1,0] },
+  { label: "Oscar nominations announced, Anora leads with 8 nods", size: 65, cat: "entertainment", polGap: 1, geoGap: 3, noise: 0.72,
+    url: "https://variety.com/2026/film/news/oscar-nominations-anora-leads",
+    data: [1,2, 2,1, 2,1, 0,1, 1,0] },
+  { label: "Amazon warehouse workers vote to unionize in Texas", size: 58, cat: "business", polGap: 7, geoGap: 6, noise: 0.16,
+    url: "https://nytimes.com/2026/03/12/business/amazon-union-texas.html",
+    data: [1,2, 2,2, 2,1, 0,1, 0,0] },
+  { label: "Antarctic ice shelf collapse accelerates beyond models", size: 52, cat: "science", polGap: 5, geoGap: -2, noise: 0.03,
+    url: "https://theguardian.com/environment/antarctic-ice-shelf-collapse",
+    data: [2,1, 2,1, 2,2, 0,0, 0,0] },
+];
+
+function getHeatClass(val) {
+  if (val === 0) return 'heat-0';
+  if (val === 1) return 'heat-1';
+  if (val === 2) return 'heat-2';
+  if (val === 3) return 'heat-3';
+  if (val <= 5) return 'heat-4';
+  if (val <= 7) return 'heat-5';
+  if (val <= 9) return 'heat-6';
+  return 'heat-7';
+}
+
+function gapClass(val) {
+  if (val > 0) return 'gap-positive';
+  if (val < 0) return 'gap-negative';
+  return 'gap-zero';
+}
+
+function noiseClass(val) {
+  if (val <= 0.15) return 'noise-low';
+  if (val <= 0.30) return 'noise-med';
+  return 'noise-high';
+}
+
+// Outlet index map: data array indices for each outlet name
+const outletIndex = {};
+let idx = 0;
+defaultOutlets.forEach(o => { if (o !== '|') { outletIndex[o] = idx++; } });
+
+function renderTable(list) {
+  const data = list || clusters;
+  const tbody = document.getElementById('heatmapBody');
+  const { isGrouped, groups } = getViewConfig();
+  tbody.innerHTML = '';
+  data.forEach((c, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="meta-cell row-num sticky-col sticky-col-0">${i + 1}</td>
+      <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a></td>
+      <td class="meta-cell size-cell sticky-col sticky-col-2">${c.size}</td>
+      <td class="meta-cell category-cell sticky-col sticky-col-3">${c.cat}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-4 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-5 ${gapClass(c.geoGap)}">${c.geoGap > 0 ? '+' : ''}${c.geoGap}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-6 ${noiseClass(c.noise)}">${Math.round(c.noise * 100)}%</td>
+    `;
+
+    if (isGrouped) {
+      groups.forEach(g => {
+        const sum = g.outlets.reduce((s, o) => s + (c.data[outletIndex[o]] || 0), 0);
+        const td = document.createElement('td');
+        td.className = `heat-cell ${getHeatClass(sum)}`;
+        td.textContent = sum || '';
+        td.dataset.outlet = g.label;
+        td.dataset.cluster = c.label;
+        td.dataset.count = sum;
+        tr.appendChild(td);
+      });
+    } else {
+      groups.forEach((g, gi) => {
+        if (gi > 0 && g.outlets.length > 0) {
+          const div = document.createElement('td');
+          div.className = 'divider-col';
+          tr.appendChild(div);
+        }
+        g.outlets.forEach(o => {
+          const val = c.data[outletIndex[o]] || 0;
+          const td = document.createElement('td');
+          td.className = `heat-cell ${getHeatClass(val)}`;
+          td.textContent = val || '';
+          td.dataset.outlet = o;
+          td.dataset.cluster = c.label;
+          td.dataset.count = val;
+          tr.appendChild(td);
+        });
+      });
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Drawers ──
+function toggleDrawer(which) {
+  const sources = document.getElementById('drawerSources');
+  const filters = document.getElementById('drawerFilters');
+  const overlay = document.getElementById('drawerOverlay');
+  const btnS = document.getElementById('btnSources');
+  const btnF = document.getElementById('btnFilters');
+
+  if (which === 'sources') {
+    const isOpen = sources.classList.contains('visible');
+    sources.classList.toggle('visible');
+    filters.classList.remove('visible');
+    btnS.classList.toggle('active', !isOpen);
+    btnF.classList.remove('active');
+    overlay.classList.toggle('visible', !isOpen);
+  } else {
+    const isOpen = filters.classList.contains('visible');
+    filters.classList.toggle('visible');
+    sources.classList.remove('visible');
+    btnF.classList.toggle('active', !isOpen);
+    btnS.classList.remove('active');
+    overlay.classList.toggle('visible', !isOpen);
+  }
+}
+
+function closeDrawers() {
+  document.getElementById('drawerSources').classList.remove('visible');
+  document.getElementById('drawerFilters').classList.remove('visible');
+  document.getElementById('drawerOverlay').classList.remove('visible');
+  document.getElementById('btnSources').classList.remove('active');
+  document.getElementById('btnFilters').classList.remove('active');
+}
+
+// ── Source chips ──
+document.querySelectorAll('.outlet-chip').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    if (e.target.tagName === 'INPUT') {
+      chip.classList.toggle('selected', e.target.checked);
+    } else {
+      const cb = chip.querySelector('input');
+      cb.checked = !cb.checked;
+      chip.classList.toggle('selected', cb.checked);
+    }
+    updateSourceCount();
+  });
+});
+
+function toggleGroup(group, checked) {
+  const groupMap = { left: 'chipsLeft', leanleft: 'chipsLeanLeft', center: 'chipsCenter', leanright: 'chipsLeanRight', right: 'chipsRight' };
+  const container = document.getElementById(groupMap[group]);
+  container.querySelectorAll('.outlet-chip').forEach(chip => {
+    chip.querySelector('input').checked = checked;
+    chip.classList.toggle('selected', checked);
+  });
+  updateSourceCount();
+}
+
+function updateSourceCount() {
+  const count = document.querySelectorAll('.outlet-chip.selected').length;
+  document.getElementById('sourceCount').textContent = count;
+  document.getElementById('sourceSummary').textContent = count + ' of 28 selected';
+}
+
+// ── Filter chips ──
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    if (e.target.tagName === 'INPUT') {
+      chip.classList.toggle('selected', e.target.checked);
+    } else {
+      const cb = chip.querySelector('input');
+      cb.checked = !cb.checked;
+      chip.classList.toggle('selected', cb.checked);
+    }
+  });
+});
+
+// ── Time chips ──
+document.querySelectorAll('.time-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+  });
+});
+
+// ── View toggle ──
+let currentView = 'outlets-bias';
+
+const biasGroups = [
+  { label: 'LEFT', cls: 'bg-left', outlets: ['Guardian','CNN'] },
+  { label: 'LEAN LEFT', cls: 'bg-leanleft', outlets: ['NYT','WaPo'] },
+  { label: 'CENTER', cls: 'bg-center', outlets: ['AP','Reuters'] },
+  { label: 'LEAN RIGHT', cls: 'bg-leanright', outlets: ['WSJ','NY Post'] },
+  { label: 'RIGHT', cls: 'bg-right', outlets: ['Fox News','Daily Wire'] },
+];
+const regionGroups = [
+  { label: 'US', cls: 'bg-center', outlets: ['CNN','NYT','WaPo','AP','WSJ','NY Post','Fox News','Daily Wire'] },
+  { label: 'CA', cls: 'bg-leanleft', outlets: [] },
+  { label: 'EMEA', cls: 'bg-left', outlets: ['Guardian','Reuters'] },
+  { label: 'APAC', cls: 'bg-leanright', outlets: [] },
+  { label: 'LATAM', cls: 'bg-right', outlets: [] },
+];
+
+function setView(view) {
+  currentView = view;
+  renderHead();
+  renderTable();
+}
+
+function getViewConfig() {
+  const isGrouped = currentView === 'bias' || currentView === 'region';
+  const groups = (currentView === 'region' || currentView === 'outlets-region') ? regionGroups : biasGroups;
+  return { isGrouped, groups };
+}
+
+function renderHead() {
+  const thead = document.getElementById('heatmapHead');
+  const { isGrouped, groups } = getViewConfig();
+  const metaCols = 7;
+  const arrow = '<span class="sort-arrow">&#9660;</span>';
+
+  const metaHeaders = `
+        <th class="meta-col sticky-col sticky-col-0" style="min-width:28px;">#</th>
+        <th class="meta-col cluster-col sorted sticky-col sticky-col-1">Cluster ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-2">Size ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-3">Cat ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-4" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-5" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-6" style="text-align:right;padding-right:10px;">Noise ${arrow}</th>`;
+
+  if (isGrouped) {
+    thead.innerHTML = `
+      <tr>
+        ${metaHeaders}
+        ${groups.map(g => `<th class="outlet-col ${g.cls}">${g.label}</th>`).join('')}
+      </tr>`;
+  } else {
+    const outletHeaders = groups.map((g, i) => {
+      const cols = g.outlets.map(o => `<th class="outlet-col">${o}</th>`).join('');
+      return (i > 0 ? '<th class="divider-col"></th>' : '') + cols;
+    }).join('');
+    const groupHeaders = groups.map((g, i) => {
+      if (g.outlets.length === 0) return '';
+      return (i > 0 ? '<th class="divider-col"></th>' : '') +
+        `<th class="${g.cls}" colspan="${g.outlets.length}">${g.label}</th>`;
+    }).join('');
+    thead.innerHTML = `
+      <tr class="bias-group-row">
+        <th class="bg-meta sticky-col sticky-col-0"></th>
+        <th class="bg-meta sticky-col sticky-col-1"></th>
+        <th class="bg-meta sticky-col sticky-col-2"></th>
+        <th class="bg-meta sticky-col sticky-col-3"></th>
+        <th class="bg-meta sticky-col sticky-col-4"></th>
+        <th class="bg-meta sticky-col sticky-col-5"></th>
+        <th class="bg-meta sticky-col sticky-col-6"></th>
+        ${groupHeaders}
+      </tr>
+      <tr>
+        ${metaHeaders}
+        ${outletHeaders}
+      </tr>`;
+  }
+}
+
+// ── Search filtering ──
+const searchInput = document.querySelector('.search-bar input');
+const searchFeedback = document.getElementById('searchFeedback');
+const searchTermEl = document.getElementById('searchTerm');
+const searchCountEl = document.getElementById('searchCount');
+const totalClusters = clusters.length;
+
+searchInput.addEventListener('input', () => {
+  const query = searchInput.value.trim().toLowerCase();
+  if (query.length === 0) {
+    searchFeedback.classList.remove('visible');
+    searchCountEl.textContent = totalClusters + ' / ' + totalClusters;
+    renderTable();
+    return;
+  }
+  searchFeedback.classList.add('visible');
+  searchTermEl.textContent = searchInput.value.trim();
+  const filtered = clusters.filter(c => c.label.toLowerCase().includes(query));
+  searchCountEl.textContent = filtered.length + ' / ' + totalClusters;
+  renderTable(filtered);
+});
+
+// ── Trending fill ──
+function fillSearch(term) {
+  searchInput.value = term;
+  searchInput.dispatchEvent(new Event('input'));
+}
+
+// ── Preset toggles ──
+const presets = {
+  wh: ['AP', 'Reuters', 'NYT', 'WaPo', 'CNN', 'Fox News', 'CBS', 'NBC', 'ABC', 'Bloomberg', 'Politico', 'The Hill', 'USA Today', 'WSJ', 'NY Post', 'Axios'],
+  us: ['AP', 'NYT', 'WaPo', 'CNN', 'Fox News', 'CBS', 'NBC', 'ABC', 'Bloomberg', 'Politico', 'The Hill', 'USA Today', 'WSJ', 'NY Post', 'Axios', 'MSNBC', 'Newsweek', 'Yahoo', 'Natl Review', 'Daily Wire', 'LA Times']
+};
+
+function togglePreset(type, checked) {
+  // Uncheck the other preset
+  const other = type === 'wh' ? 'us' : 'wh';
+  const otherEl = document.getElementById(type === 'wh' ? 'presetUS' : 'presetWH');
+  otherEl.querySelector('input').checked = false;
+  otherEl.classList.remove('active');
+
+  const preset = presets[type];
+  const el = document.getElementById(type === 'wh' ? 'presetWH' : 'presetUS');
+  el.classList.toggle('active', checked);
+
+  if (checked) {
+    document.querySelectorAll('.outlet-chip').forEach(chip => {
+      const isIn = preset.includes(chip.dataset.outlet);
+      chip.querySelector('input').checked = isIn;
+      chip.classList.toggle('selected', isIn);
+    });
+  }
+  updateSourceCount();
+}
+
+// ── Tooltip ──
+const tooltip = document.getElementById('tooltip');
+document.getElementById('heatmapTable').addEventListener('mouseover', (e) => {
+  const cell = e.target.closest('.heat-cell');
+  if (!cell) { tooltip.classList.remove('visible'); return; }
+  tooltip.querySelector('.tt-outlet').textContent = cell.dataset.outlet;
+  tooltip.querySelector('.tt-cluster').textContent = cell.dataset.cluster;
+  tooltip.querySelector('.tt-count').textContent = cell.dataset.count;
+  tooltip.classList.add('visible');
+});
+document.getElementById('heatmapTable').addEventListener('mousemove', (e) => {
+  if (tooltip.classList.contains('visible')) {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY - 60) + 'px';
+  }
+});
+document.getElementById('heatmapTable').addEventListener('mouseout', (e) => {
+  if (!e.target.closest('.heat-cell')) tooltip.classList.remove('visible');
+});
+
+// Close drawers with Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDrawers();
+  }
+});
+
+renderHead();
+renderTable();
+</script>
+</body>
+</html>
