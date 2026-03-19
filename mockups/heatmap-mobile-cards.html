@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media.games — Mobile Heatmap (Cluster Cards)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ══════════════════════════════════════════
+     LIGHT THEME — Muted Rust + Sage Olive
+     ══════════════════════════════════════════ */
+  [data-theme="light"] {
+    --bg: #FAF9F6;
+    --surface: #F0EDE8;
+    --surface-hover: #E8E4DD;
+    --surface-white: #fff;
+    --border: #DDD7CE;
+    --border-light: #E8E3DB;
+    --text: #2D2B28;
+    --text-secondary: #6B6560;
+    --text-tertiary: #9B958E;
+    --brand: #9C6A60;
+    --brand-bg: rgba(156,106,96,0.08);
+    --brand-border: rgba(156,106,96,0.3);
+    --accent: #7C8578;
+    --accent-bg: rgba(124,133,120,0.10);
+    --accent-border: rgba(124,133,120,0.3);
+    --link-hover: #9C6A60;
+    --gap-left: #5B7FA6;
+    --gap-right: #B86A5A;
+    --tag-bg: #EDEAE5;
+    --tag-border: #D8D3CB;
+    --row-hover: rgba(156,106,96,0.04);
+    --heat-outline: #9C6A60;
+    --heat-0-bg: transparent;        --heat-0-fg: transparent;
+    --heat-1-bg: rgba(156,106,96,0.07); --heat-1-fg: #9B958E;
+    --heat-2-bg: rgba(156,106,96,0.14); --heat-2-fg: #6B6560;
+    --heat-3-bg: rgba(156,106,96,0.22); --heat-3-fg: #6B6560;
+    --heat-4-bg: rgba(156,106,96,0.32); --heat-4-fg: #2D2B28;
+    --heat-5-bg: rgba(156,106,96,0.44); --heat-5-fg: #fff;
+    --heat-6-bg: rgba(156,106,96,0.60); --heat-6-fg: #fff;
+    --heat-7-bg: rgba(156,106,96,0.80); --heat-7-fg: #fff;
+    --toggle-track: #DDD7CE;
+    --focus-ring: rgba(156,106,96,0.15);
+  }
+
+  /* ══════════════════════════════════════════
+     DARK THEME — Black + Green
+     ══════════════════════════════════════════ */
+  [data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #1e2030;
+    --surface-hover: #282a3a;
+    --surface-white: #161822;
+    --border: #2a2d3a;
+    --border-light: #1e2030;
+    --text: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #666;
+    --brand: #4ade80;
+    --brand-bg: rgba(74,222,128,0.08);
+    --brand-border: rgba(74,222,128,0.3);
+    --accent: #6366f1;
+    --accent-bg: rgba(99,102,241,0.10);
+    --accent-border: rgba(99,102,241,0.3);
+    --link-hover: #4ade80;
+    --gap-left: #60a5fa;
+    --gap-right: #f87171;
+    --tag-bg: #1e2030;
+    --tag-border: #2a2d3a;
+    --row-hover: rgba(99,102,241,0.06);
+    --heat-outline: #6366f1;
+    --heat-0-bg: rgba(255,255,255,0.02); --heat-0-fg: #333;
+    --heat-1-bg: rgba(34,197,94,0.10);   --heat-1-fg: #4ade80;
+    --heat-2-bg: rgba(34,197,94,0.18);   --heat-2-fg: #4ade80;
+    --heat-3-bg: rgba(34,197,94,0.28);   --heat-3-fg: #22c55e;
+    --heat-4-bg: rgba(34,197,94,0.38);   --heat-4-fg: #16a34a;
+    --heat-5-bg: rgba(34,197,94,0.52);   --heat-5-fg: #fff;
+    --heat-6-bg: rgba(34,197,94,0.68);   --heat-6-fg: #fff;
+    --heat-7-bg: rgba(34,197,94,0.85);   --heat-7-fg: #fff;
+    --toggle-track: #2a2d3a;
+    --focus-ring: rgba(99,102,241,0.2);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    transition: background 0.3s, color 0.3s;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--surface-white);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.3s;
+  }
+  .site-header h1 { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .site-header h1 span { color: var(--brand); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .hamburger {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; color: var(--text-secondary); transition: all 0.15s;
+  }
+  .hamburger:hover { background: var(--surface-hover); }
+  .theme-toggle {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 2px 4px; cursor: pointer; user-select: none; transition: all 0.15s;
+  }
+  .theme-toggle:hover { background: var(--surface-hover); }
+  .theme-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 13px; transition: all 0.2s;
+  }
+  .theme-icon.active { background: var(--brand-bg); color: var(--brand); }
+  .theme-icon:not(.active) { color: var(--text-tertiary); }
+
+  /* ── Search ── */
+  .search-row { background: var(--surface-white); padding: 8px 16px; transition: background 0.3s; }
+  .search-bar { position: relative; display: flex; align-items: center; }
+  .search-bar input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px 10px 36px; border-radius: 10px; font-size: 14px; font-family: inherit; transition: all 0.15s;
+  }
+  .search-bar input:focus { outline: none; border-color: var(--brand); background: var(--surface-white); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .search-bar input::placeholder { color: var(--text-tertiary); }
+  .search-bar svg { position: absolute; left: 11px; color: var(--text-tertiary); pointer-events: none; }
+  .search-count { position: absolute; right: 12px; font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; pointer-events: none; }
+
+  /* ── Toolbar ── */
+  .toolbar-row {
+    background: var(--surface-white); padding: 4px 16px 8px;
+    display: flex; gap: 8px; border-bottom: 1px solid var(--border); transition: background 0.3s;
+  }
+  .tb-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary);
+    padding: 8px 12px; border-radius: 8px; font-size: 13px; font-family: inherit;
+    cursor: pointer; transition: all 0.15s; user-select: none; white-space: nowrap;
+  }
+  .tb-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .tb-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .tb-count { background: var(--brand-bg); color: var(--brand); padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+
+  /* ── View toggle ── */
+  .view-bar {
+    background: var(--surface-white); padding: 8px 16px;
+    display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); transition: background 0.3s;
+  }
+  .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .view-toggle-btn {
+    padding: 6px 14px; font-size: 12px; font-family: inherit; font-weight: 500;
+    color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .view-toggle-btn.active { background: var(--brand-bg); color: var(--brand); font-weight: 600; }
+  .view-toggle-btn:not(.active):hover { background: var(--surface-hover); }
+
+  /* ── Card list ── */
+  .card-list { padding: 8px 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── Cluster Card ── */
+  .cluster-card {
+    background: var(--surface-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .cluster-card:active { transform: scale(0.995); }
+
+  .card-header {
+    padding: 12px 14px 10px;
+  }
+  .card-rank {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-bottom: 2px;
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.35;
+    margin-bottom: 4px;
+  }
+  .card-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .card-meta-item { white-space: nowrap; }
+  .pol-left { color: var(--gap-left); font-weight: 600; }
+  .pol-right { color: var(--gap-right); font-weight: 600; }
+
+  /* ── Coverage Strip ── */
+  .strip-container {
+    padding: 0 14px 10px;
+  }
+  .coverage-strip {
+    display: flex;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    gap: 0;
+  }
+  .strip-segment {
+    flex: 1;
+    min-width: 0;
+    transition: opacity 0.1s;
+  }
+  .strip-segment:active { opacity: 0.6; }
+  /* Group dividers — slightly thicker gap between bias groups */
+  .strip-divider {
+    width: 2px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .strip-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 2px 0;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .strip-label-l { color: var(--gap-left); }
+  .strip-label-c { color: var(--text-tertiary); }
+  .strip-label-r { color: var(--gap-right); }
+
+  /* ── Card summary row ── */
+  .card-summary {
+    padding: 0 14px 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .card-summary strong { font-weight: 600; color: var(--text); }
+  .zero-outlets { color: var(--gap-right); font-weight: 500; }
+
+  /* ── Expanded card ── */
+  .card-expanded {
+    display: none;
+    border-top: 1px solid var(--border-light);
+    padding: 10px 14px 14px;
+    background: var(--surface);
+  }
+  .card-expanded.visible { display: block; }
+
+  .outlet-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 10px 0 5px;
+  }
+  .outlet-group-label:first-child { margin-top: 0; }
+  .grp-left { color: var(--gap-left); }
+  .grp-leanleft { color: #7A9DB8; }
+  [data-theme="dark"] .grp-leanleft { color: #93c5fd; }
+  .grp-center { color: var(--text-tertiary); }
+  .grp-leanright { color: #C08D7D; }
+  [data-theme="dark"] .grp-leanright { color: #fca5a5; }
+  .grp-right { color: var(--gap-right); }
+
+  .outlet-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 12px;
+  }
+  .outlet-name {
+    width: 100px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .outlet-bar-bg {
+    flex: 1;
+    height: 14px;
+    background: var(--surface-hover);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .outlet-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .outlet-count {
+    width: 24px;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    font-size: 12px;
+  }
+  .outlet-count.zero {
+    color: var(--gap-right);
+    font-weight: 700;
+  }
+  .outlet-name.zero {
+    color: var(--gap-right);
+    font-weight: 500;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: 16px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    border-top: 1px solid var(--border-light);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="site-header">
+  <h1>media<span>.games</span></h1>
+  <div class="header-right">
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span class="theme-icon active" id="iconLight">&#9788;</span>
+      <span class="theme-icon" id="iconDark">&#9790;</span>
+    </div>
+    <div class="hamburger">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEARCH ═══ -->
+<div class="search-row">
+  <div class="search-bar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search topics...">
+    <span class="search-count">344 / 344</span>
+  </div>
+</div>
+
+<!-- ═══ TOOLBAR ═══ -->
+<div class="toolbar-row">
+  <button class="tb-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Sources <span class="tb-count">28</span>
+  </button>
+  <button class="tb-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="6" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg>
+    Filters
+  </button>
+</div>
+
+<!-- ═══ VIEW TOGGLE ═══ -->
+<div class="view-bar">
+  <div class="view-toggle">
+    <button class="view-toggle-btn" onclick="setView('table')">Table</button>
+    <button class="view-toggle-btn active" onclick="setView('cards')">Cards</button>
+  </div>
+</div>
+
+<!-- ═══ CLUSTER CARDS ═══ -->
+<div class="card-list">
+
+  <!-- Card 1 -->
+  <div class="cluster-card" onclick="toggleCard(this)">
+    <div class="card-header">
+      <div class="card-rank">#1</div>
+      <div class="card-title">Trump announces 25% tariffs on all EU imports starting April 1</div>
+      <div class="card-meta">
+        <span class="card-meta-item">187 articles</span>
+        <span class="card-meta-item">politics</span>
+        <span class="card-meta-item">Pol: <span class="pol-left">+12 L</span></span>
+        <span class="card-meta-item">Geo: <span class="pol-right">+8 US</span></span>
+      </div>
+    </div>
+    <div class="strip-container">
+      <div class="coverage-strip">
+        <!-- Left: MSNBC, Guardian, CNN, Al Jazeera, AP, Politico, NYT, WaPo, LA Times, NBC, CBS -->
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Lean Left -->
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Center -->
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Lean Right -->
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Right -->
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label-l">Left</span>
+        <span class="strip-label-c">Center</span>
+        <span class="strip-label-r">Right</span>
+      </div>
+    </div>
+    <div class="card-summary">
+      Top: <strong>CNN</strong>(8) <strong>NYT</strong>(9) <strong>AP</strong>(8) <strong>Reuters</strong>(7)<br>
+      Zero: <span class="zero-outlets">none</span>
+    </div>
+
+    <!-- Expanded outlet breakdown -->
+    <div class="card-expanded">
+      <div class="outlet-group-label grp-left">Left (4 outlets)</div>
+      <div class="outlet-row">
+        <span class="outlet-name">MS NOW</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:33%;background:var(--heat-3-bg)"></span></span>
+        <span class="outlet-count">3</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Guardian</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:56%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">5</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">CNN</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-7-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Al Jazeera</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:67%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">6</span>
+      </div>
+
+      <div class="outlet-group-label grp-leanleft">Lean Left (7 outlets)</div>
+      <div class="outlet-row">
+        <span class="outlet-name">NYT</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:100%;background:var(--heat-7-bg)"></span></span>
+        <span class="outlet-count">9</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">WaPo</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:78%;background:var(--heat-6-bg)"></span></span>
+        <span class="outlet-count">7</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">LA Times</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:67%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">6</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">NBC</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-6-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">CBS</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:67%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">6</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">ABC</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:56%;background:var(--heat-4-bg)"></span></span>
+        <span class="outlet-count">5</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Politico</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:78%;background:var(--heat-6-bg)"></span></span>
+        <span class="outlet-count">7</span>
+      </div>
+
+      <div class="outlet-group-label grp-center">Center (10 outlets)</div>
+      <div class="outlet-row">
+        <span class="outlet-name">AP</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-7-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Reuters</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:78%;background:var(--heat-6-bg)"></span></span>
+        <span class="outlet-count">7</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">BBC</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:67%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">6</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Axios</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:56%;background:var(--heat-4-bg)"></span></span>
+        <span class="outlet-count">5</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Bloomberg</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-6-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">SCMP</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-7-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+
+      <div class="outlet-group-label grp-leanright">Lean Right (4 outlets)</div>
+      <div class="outlet-row">
+        <span class="outlet-name">WSJ</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:67%;background:var(--heat-5-bg)"></span></span>
+        <span class="outlet-count">6</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">NY Post</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:56%;background:var(--heat-4-bg)"></span></span>
+        <span class="outlet-count">5</span>
+      </div>
+
+      <div class="outlet-group-label grp-right">Right (4 outlets)</div>
+      <div class="outlet-row">
+        <span class="outlet-name">Fox News</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:89%;background:var(--heat-7-bg)"></span></span>
+        <span class="outlet-count">8</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Nat'l Review</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:33%;background:var(--heat-3-bg)"></span></span>
+        <span class="outlet-count">3</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name">Daily Wire</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:22%;background:var(--heat-2-bg)"></span></span>
+        <span class="outlet-count">2</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name zero">Breitbart</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:0%"></span></span>
+        <span class="outlet-count zero">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="cluster-card" onclick="toggleCard(this)">
+    <div class="card-header">
+      <div class="card-rank">#2</div>
+      <div class="card-title">Ukraine counteroffensive stalls amid ammunition shortages</div>
+      <div class="card-meta">
+        <span class="card-meta-item">156 articles</span>
+        <span class="card-meta-item">world</span>
+        <span class="card-meta-item">Pol: <span class="pol-left">+24 L</span></span>
+      </div>
+    </div>
+    <div class="strip-container">
+      <div class="coverage-strip">
+        <!-- Left: heavy -->
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Lean Left: medium-high -->
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Center: high -->
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Lean Right: low -->
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-divider"></div>
+        <!-- Right: very low -->
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label-l">Left</span>
+        <span class="strip-label-c">Center</span>
+        <span class="strip-label-r">Right</span>
+      </div>
+    </div>
+    <div class="card-summary">
+      Top: <strong>AP</strong>(12) <strong>Reuters</strong>(10) <strong>Al Jazeera</strong>(9) <strong>NYT</strong>(8)<br>
+      Zero: <span class="zero-outlets">Daily Wire, Nat'l Review</span>
+    </div>
+    <div class="card-expanded">
+      <div class="outlet-group-label grp-right">Right — clear omission pattern</div>
+      <div class="outlet-row">
+        <span class="outlet-name">Fox News</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:25%;background:var(--heat-2-bg)"></span></span>
+        <span class="outlet-count">2</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name zero">Daily Wire</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:0%"></span></span>
+        <span class="outlet-count zero">0</span>
+      </div>
+      <div class="outlet-row">
+        <span class="outlet-name zero">Nat'l Review</span>
+        <span class="outlet-bar-bg"><span class="outlet-bar-fill" style="width:0%"></span></span>
+        <span class="outlet-count zero">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="cluster-card" onclick="toggleCard(this)">
+    <div class="card-header">
+      <div class="card-rank">#3</div>
+      <div class="card-title">Federal Reserve signals possible rate cut in June as inflation cools</div>
+      <div class="card-meta">
+        <span class="card-meta-item">142 articles</span>
+        <span class="card-meta-item">business</span>
+      </div>
+    </div>
+    <div class="strip-container">
+      <div class="coverage-strip">
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label-l">Left</span>
+        <span class="strip-label-c">Center</span>
+        <span class="strip-label-r">Right</span>
+      </div>
+    </div>
+    <div class="card-summary">
+      Top: <strong>Bloomberg</strong>(8) <strong>WSJ</strong>(7) <strong>AP</strong>(6) <strong>CNBC</strong>(6)<br>
+      Zero: <span class="zero-outlets">none</span>
+    </div>
+    <div class="card-expanded"></div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="cluster-card" onclick="toggleCard(this)">
+    <div class="card-header">
+      <div class="card-rank">#4</div>
+      <div class="card-title">Border security bill fails in Congress for third time this year</div>
+      <div class="card-meta">
+        <span class="card-meta-item">58 articles</span>
+        <span class="card-meta-item">politics</span>
+        <span class="card-meta-item">Pol: <span class="pol-right">-26 R</span></span>
+      </div>
+    </div>
+    <div class="strip-container">
+      <div class="coverage-strip">
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-7-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-6-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label-l">Left</span>
+        <span class="strip-label-c">Center</span>
+        <span class="strip-label-r">Right</span>
+      </div>
+    </div>
+    <div class="card-summary">
+      Top: <strong>Fox</strong>(12) <strong>Daily Wire</strong>(8) <strong>NY Post</strong>(6)<br>
+      Zero: <span class="zero-outlets">MSNBC, Guardian, Al Jazeera</span>
+    </div>
+    <div class="card-expanded"></div>
+  </div>
+
+  <!-- Card 5 — omission story -->
+  <div class="cluster-card" onclick="toggleCard(this)">
+    <div class="card-header">
+      <div class="card-rank">#5</div>
+      <div class="card-title">Teachers union protests grow in red states over school funding cuts</div>
+      <div class="card-meta">
+        <span class="card-meta-item">45 articles</span>
+        <span class="card-meta-item">education</span>
+        <span class="card-meta-item">Pol: <span class="pol-left">+30 L</span></span>
+      </div>
+    </div>
+    <div class="strip-container">
+      <div class="coverage-strip">
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-5-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-4-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-3-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-2-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-1-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-divider"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+        <div class="strip-segment" style="background:var(--heat-0-bg)"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label-l">Left</span>
+        <span class="strip-label-c">Center</span>
+        <span class="strip-label-r">Right</span>
+      </div>
+    </div>
+    <div class="card-summary">
+      Top: <strong>Guardian</strong>(6) <strong>NYT</strong>(5) <strong>WaPo</strong>(4) <strong>NBC</strong>(4)<br>
+      Zero: <span class="zero-outlets">Fox, Daily Wire, Nat'l Review, Breitbart, NY Post, WSJ, Jerusalem Post, RT</span>
+    </div>
+    <div class="card-expanded"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  media.games · Mobile Heatmap (Cluster Cards) · Sample data
+</div>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('iconLight').classList.toggle('active', !isDark);
+    document.getElementById('iconDark').classList.toggle('active', isDark);
+  }
+
+  function toggleCard(card) {
+    const expanded = card.querySelector('.card-expanded');
+    if (expanded) expanded.classList.toggle('visible');
+  }
+
+  function setView(view) {
+    const btns = document.querySelectorAll('.view-toggle-btn');
+    btns.forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().trim() === view));
+    if (view === 'table') {
+      window.location.href = 'heatmap-mobile-table.html';
+    }
+  }
+</script>
+
+</body>
+</html>
