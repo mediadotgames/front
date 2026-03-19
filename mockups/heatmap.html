@@ -226,49 +226,7 @@
   }
 
   /* ── Trending bar ── */
-  .trending-bar {
-    background: var(--surface-white);
-    border-bottom: none;
-    padding: 2px 32px 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.3s;
-  }
-  .trending-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .trending-links {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .trending-link {
-    font-size: 13px;
-    color: var(--gap-left);
-    cursor: pointer;
-    text-decoration: none;
-    padding: 2px 8px;
-    border-radius: 4px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .trending-link:hover {
-    background: var(--accent-bg);
-    text-decoration: underline;
-  }
-  .trending-sep {
-    color: var(--border);
-    font-size: 11px;
-    user-select: none;
-  }
+
 
   .tb-btn {
     display: flex;
@@ -326,6 +284,15 @@
     flex-shrink: 0;
   }
 
+  .qf-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
   .qf-chip {
     background: var(--tag-bg);
     border: 1px solid var(--tag-border);
@@ -960,36 +927,10 @@
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
 
-<!-- ═══ Trending Now ═══ -->
-<div class="trending-bar">
-  <span class="trending-label">Trending now</span>
-  <div class="trending-links">
-    <a class="trending-link" onclick="fillSearch('eu')">eu</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('trump')">trump</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('tariffs')">tariffs</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('AI')">ai</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('rate cut')">rate cut</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('bird flu')">bird flu</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('Ukraine')">ukraine</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('Gaza')">gaza</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('immigration bill')">immigration bill</a>
-    <span class="trending-sep">·</span>
-    <a class="trending-link" onclick="fillSearch('wildfire')">wildfire</a>
-  </div>
-</div>
-
 <!-- ═══ ROW 3: Quick filters + View toggle ═══ -->
 <div class="filters-row">
   <div class="filters-left">
-    <span class="trending-label">Quick filters</span>
+    <span class="qf-label">Quick filters</span>
     <span class="qf-chip" onclick="this.classList.toggle('active')">For politics</span>
     <span class="qf-chip" onclick="this.classList.toggle('active')">Public interest only</span>
     <span class="qf-chip" onclick="this.classList.toggle('active')">US focus only</span>
@@ -1471,11 +1412,6 @@ searchInput.addEventListener('input', () => {
 });
 
 // ── Trending fill ──
-function fillSearch(term) {
-  searchInput.value = term;
-  searchInput.dispatchEvent(new Event('input'));
-}
-
 // ── Preset toggles ──
 const presets = {
   wh: ['AP', 'Reuters', 'NYT', 'WaPo', 'CNN', 'Fox News', 'CBS', 'NBC', 'ABC', 'Bloomberg', 'Politico', 'The Hill', 'USA Today', 'WSJ', 'NY Post', 'Axios'],
