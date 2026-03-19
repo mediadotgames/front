@@ -604,10 +604,9 @@
   .sticky-col-0 { left: 0; min-width: 28px; }
   .sticky-col-1 { left: 28px; min-width: 260px; }
   .sticky-col-2 { left: 288px; min-width: 50px; }
-  .sticky-col-3 { left: 338px; min-width: 70px; }
-  .sticky-col-4 { left: 408px; min-width: 40px; }
-  .sticky-col-5 { left: 448px; min-width: 40px; }
-  .sticky-col-6 { left: 488px; min-width: 50px; box-shadow: 2px 0 4px rgba(0,0,0,0.04); }
+  .sticky-col-3 { left: 338px; min-width: 40px; }
+  .sticky-col-4 { left: 378px; min-width: 40px; }
+  .sticky-col-5 { left: 418px; min-width: 50px; box-shadow: 2px 0 4px rgba(0,0,0,0.04); }
 
   .bias-group-row th {
     padding: 6px 0 2px;
@@ -683,39 +682,21 @@
   .cluster-link {
     color: inherit; text-decoration: none;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    flex: 1; min-width: 0;
+    display: block;
   }
   .cluster-link:hover { color: var(--link-hover); text-decoration: underline; }
-  .cluster-cell-inner {
+  .cluster-meta {
     display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-tertiary); margin-top: 1px;
   }
-  .cluster-inspect {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px; height: 22px;
-    border-radius: 4px;
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
+  .cluster-meta a {
+    color: var(--brand); text-decoration: none; font-weight: 500;
   }
-  .cluster-inspect svg { width: 14px; height: 14px; }
-  .cluster-inspect:hover {
-    background: var(--brand-bg);
-    border-color: var(--brand-border);
-    color: var(--brand);
-  }
-  tr:hover .cluster-inspect {
-    border-color: var(--border);
+  .cluster-meta a:hover { text-decoration: underline; }
+  .cluster-meta .cat-tag {
+    color: var(--text-tertiary);
   }
   .heatmap-table tbody td.size-cell { font-weight: 700; color: var(--text); }
-  .heatmap-table tbody td.category-cell {
-    font-size: 11px; color: var(--text-tertiary);
-    max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
   .heatmap-table tbody td.num-cell { text-align: right; padding-right: 10px; min-width: 48px; font-weight: 500; }
 
   .gap-positive { color: var(--gap-left); }
@@ -1130,12 +1111,11 @@ function renderTable(list) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="meta-cell row-num sticky-col sticky-col-0">${i + 1}</td>
-      <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><div class="cluster-cell-inner"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a><a href="/cluster/${i+1}" class="cluster-inspect" title="Full coverage"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="10" height="8" rx="1.5"/><path d="M5 5V4a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0111 4v1"/><line x1="6" y1="8" x2="10" y2="8"/><line x1="6" y1="10.5" x2="9" y2="10.5"/></svg></a></div></td>
+      <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a><div class="cluster-meta"><a href="/cluster/${i+1}">see all ${c.size} articles</a><span class="cat-tag">&middot; ${c.cat}</span></div></td>
       <td class="meta-cell size-cell sticky-col sticky-col-2">${c.size}</td>
-      <td class="meta-cell category-cell sticky-col sticky-col-3">${c.cat}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-4 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-5 ${gapClass(c.geoGap)}">${c.geoGap > 0 ? '+' : ''}${c.geoGap}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-6 ${noiseClass(c.noise)}">${Math.round(c.noise * 100)}%</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-3 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-4 ${gapClass(c.geoGap)}">${c.geoGap > 0 ? '+' : ''}${c.geoGap}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-5 ${noiseClass(c.noise)}">${Math.round(c.noise * 100)}%</td>
     `;
 
     if (isGrouped) {
@@ -1359,9 +1339,11 @@ document.querySelectorAll('.time-chip').forEach(chip => {
 let currentView = 'outlets-bias';
 
 const biasGroups = [
-  { label: 'LEFT', cls: 'bg-left', outlets: ['Guardian','CNN','Al Jazeera','NYT','WaPo','NBC','LA Times'] },
+  { label: 'LEFT', cls: 'bg-left', outlets: ['Guardian','CNN','Al Jazeera'] },
+  { label: 'LEANS LEFT', cls: 'bg-leanleft', outlets: ['NYT','WaPo','NBC','LA Times'] },
   { label: 'CENTER', cls: 'bg-center', outlets: ['CBS','ABC','Politico','Axios','Newsweek','BBC','AP','SCMP','Reuters','USA Today','The Hill'] },
-  { label: 'RIGHT', cls: 'bg-right', outlets: ['WSJ','J Post','NY Post','Fox News','Natl Review','RT','Daily Wire'] },
+  { label: 'LEANS RIGHT', cls: 'bg-leanright', outlets: ['WSJ','J Post'] },
+  { label: 'RIGHT', cls: 'bg-right', outlets: ['NY Post','Fox News','Natl Review','RT','Daily Wire'] },
 ];
 const regionGroups = [
   { label: 'US', cls: 'bg-center', outlets: ['CNN','NYT','WaPo','NBC','LA Times','CBS','ABC','Politico','Axios','Newsweek','AP','USA Today','The Hill','WSJ','NY Post','Fox News','Natl Review','Daily Wire'] },
@@ -1384,17 +1366,16 @@ function getViewConfig() {
 function renderHead() {
   const thead = document.getElementById('heatmapHead');
   const { isGrouped, groups } = getViewConfig();
-  const metaCols = 7;
+  const metaCols = 6;
   const arrow = '<span class="sort-arrow">&#9660;</span>';
 
   const metaHeaders = `
         <th class="meta-col sticky-col sticky-col-0" style="min-width:28px;">#</th>
         <th class="meta-col cluster-col sorted sticky-col sticky-col-1">Cluster ${arrow}</th>
         <th class="meta-col sticky-col sticky-col-2">Size ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-3">Cat ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-4" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-5" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-6" style="text-align:right;padding-right:10px;">PI % ${arrow}</th>`;
+        <th class="meta-col sticky-col sticky-col-3" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-4" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-5" style="text-align:right;padding-right:10px;">PI % ${arrow}</th>`;
 
   if (isGrouped) {
     thead.innerHTML = `
@@ -1420,7 +1401,6 @@ function renderHead() {
         <th class="bg-meta sticky-col sticky-col-3"></th>
         <th class="bg-meta sticky-col sticky-col-4"></th>
         <th class="bg-meta sticky-col sticky-col-5"></th>
-        <th class="bg-meta sticky-col sticky-col-6"></th>
         ${groupHeaders}
       </tr>
       <tr>
