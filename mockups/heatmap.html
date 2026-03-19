@@ -991,6 +991,7 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   document.getElementById('iconLight').classList.toggle('active', next === 'light');
   document.getElementById('iconDark').classList.toggle('active', next === 'dark');
+  renderTable();
 }
 
 // ── Data ──
@@ -1068,7 +1069,8 @@ function getHeatStyle(count, piCount) {
     b = Math.round(50 + t * 20);
   }
   const bg = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-  const fg = alpha > 0.45 ? '#fff' : (alpha > 0.25 ? '#2D2B28' : '#6B6560');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const fg = isDark ? '#e0e0e0' : (alpha > 0.45 ? '#fff' : (alpha > 0.25 ? '#2D2B28' : '#6B6560'));
   return { bg, fg };
 }
 
