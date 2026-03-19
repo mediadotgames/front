@@ -96,7 +96,7 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
-    overflow-x: auto;
+    overflow-x: hidden;
     line-height: 1.5;
     transition: background 0.3s, color 0.3s;
   }
@@ -113,6 +113,7 @@
     top: 0;
     z-index: 100;
     transition: background 0.3s;
+    max-width: 100vw;
   }
   .header-left {
     display: flex;
@@ -186,6 +187,7 @@
     align-items: center;
     gap: 10px;
     transition: background 0.3s;
+    max-width: 100vw;
   }
   .search-bar {
     flex: 1;
@@ -214,8 +216,10 @@
     position: absolute;
     left: 13px;
     color: var(--text-tertiary);
-    pointer-events: none;
+    cursor: pointer;
+    z-index: 1;
   }
+  .search-bar svg:hover { color: var(--brand); }
   .search-count {
     position: absolute;
     right: 14px;
@@ -270,6 +274,7 @@
     justify-content: space-between;
     gap: 12px;
     transition: background 0.3s;
+    max-width: 100vw;
   }
   .filters-left {
     display: flex;
@@ -366,7 +371,7 @@
     box-shadow: var(--drawer-shadow);
     z-index: 60;
     padding: 20px 24px;
-    max-height: 480px;
+    max-height: 560px;
     overflow-y: auto;
     transition: background 0.3s;
   }
@@ -677,9 +682,35 @@
   }
   .cluster-link {
     color: inherit; text-decoration: none;
-    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
   }
   .cluster-link:hover { color: var(--link-hover); text-decoration: underline; }
+  .cluster-cell-inner {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cluster-inspect {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cluster-inspect svg { width: 14px; height: 14px; }
+  .cluster-inspect:hover {
+    background: var(--brand-bg);
+    border-color: var(--brand-border);
+    color: var(--brand);
+  }
+  tr:hover .cluster-inspect {
+    border-color: var(--border);
+  }
   .heatmap-table tbody td.size-cell { font-weight: 700; color: var(--text); }
   .heatmap-table tbody td.category-cell {
     font-size: 11px; color: var(--text-tertiary);
@@ -786,7 +817,7 @@
     cursor: pointer;
   }
 
-  .toolbar-wrapper { position: relative; }
+  .toolbar-wrapper { position: relative; max-width: 100vw; overflow: hidden; }
 </style>
 </head>
 <body>
@@ -817,7 +848,7 @@
 <div class="toolbar-wrapper">
   <div class="search-row">
     <div class="search-bar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" onclick="executeSearch()"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" placeholder="Search for topics, events & outlets">
       <span class="search-count" id="searchCount">344 / 344</span>
     </div>
@@ -985,85 +1016,86 @@ function toggleTheme() {
 
 // ── Data ──
 const defaultOutlets = [
-  'Guardian','CNN','|',
-  'NYT','WaPo','|',
-  'AP','Reuters','|',
-  'WSJ','NY Post','|',
-  'Fox News','Daily Wire'
+  'Guardian','CNN','Al Jazeera','|',
+  'NYT','WaPo','NBC','LA Times','|',
+  'CBS','ABC','Politico','Axios','Newsweek','BBC','AP','SCMP','Reuters','USA Today','The Hill','|',
+  'WSJ','J Post','|',
+  'NY Post','Fox News','Natl Review','RT','Daily Wire'
 ];
 
+// Real data from v_heatmap — data format: [count, pi_count, count, pi_count, ...] per outlet in bias order
 const clusters = [
-  { label: "Trump announces 25% tariffs on all EU imports", size: 187, cat: "politics", polGap: 12, geoGap: 8, noise: 0.24,
-    url: "https://apnews.com/article/trump-eu-tariffs-25-percent",
-    data: [3,8, 9,7, 8,7, 6,5, 8,3] },
-  { label: "Ukraine counteroffensive gains ground near Zaporizhzhia", size: 156, cat: "world", polGap: -2, geoGap: -6, noise: 0.11,
-    url: "https://reuters.com/world/ukraine-counteroffensive-zaporizhzhia",
-    data: [5,6, 7,6, 7,8, 4,2, 3,1] },
-  { label: "Senate passes bipartisan AI regulation framework", size: 148, cat: "politics", polGap: 8, geoGap: 9, noise: 0.18,
-    url: "https://nytimes.com/2026/03/15/us/politics/senate-ai-regulation.html",
-    data: [2,7, 8,6, 6,5, 5,2, 4,1] },
-  { label: "Fed signals potential rate cut in May meeting", size: 142, cat: "business", polGap: 1, geoGap: 3, noise: 0.15,
-    url: "https://wsj.com/economy/central-banking/fed-rate-cut-may",
-    data: [1,4, 5,4, 5,6, 7,2, 4,1] },
-  { label: "Gaza ceasefire negotiations resume in Cairo", size: 141, cat: "world", polGap: 5, geoGap: -4, noise: 0.09,
-    url: "https://aljazeera.com/news/gaza-ceasefire-cairo-negotiations",
-    data: [6,5, 7,5, 6,7, 3,2, 3,1] },
-  { label: "California wildfire forces 50,000 evacuations", size: 138, cat: "general", polGap: 3, geoGap: 10, noise: 0.31,
-    url: "https://latimes.com/california/story/wildfire-evacuations-50000",
-    data: [1,6, 5,4, 5,4, 3,4, 4,2] },
-  { label: "China launches new space station module", size: 127, cat: "science", polGap: -1, geoGap: -8, noise: 0.06,
-    url: "https://reuters.com/science/china-space-station-module-launch",
-    data: [2,3, 3,2, 4,5, 2,1, 2,0] },
-  { label: "Supreme Court hears arguments on social media censorship", size: 124, cat: "politics", polGap: -6, geoGap: 8, noise: 0.22,
-    url: "https://washingtonpost.com/politics/courts/supreme-court-social-media",
-    data: [1,4, 4,4, 4,3, 4,4, 6,5] },
-  { label: "NHS crisis deepens as waiting lists hit record", size: 118, cat: "health", polGap: 1, geoGap: -9, noise: 0.08,
-    url: "https://theguardian.com/society/nhs-waiting-lists-record",
-    data: [5,1, 2,1, 3,4, 1,0, 0,0] },
-  { label: "Boeing 737 MAX faces new safety audit after incidents", size: 114, cat: "business", polGap: 2, geoGap: 2, noise: 0.19,
-    url: "https://nytimes.com/2026/03/14/business/boeing-737-max-safety-audit.html",
-    data: [1,4, 4,3, 4,5, 3,2, 3,1] },
-  { label: "Immigration bill stalls in House amid GOP divisions", size: 110, cat: "politics", polGap: -7, geoGap: 9, noise: 0.27,
-    url: "https://politico.com/news/immigration-bill-house-gop-divisions",
-    data: [0,4, 3,3, 3,2, 2,4, 6,4] },
-  { label: "EU approves landmark digital markets enforcement", size: 98, cat: "technology", polGap: 3, geoGap: -5, noise: 0.12,
-    url: "https://reuters.com/technology/eu-digital-markets-enforcement",
-    data: [3,2, 3,2, 3,4, 2,1, 1,0] },
-  { label: "Bird flu outbreak spreads to dairy farms in 4 states", size: 92, cat: "health", polGap: 4, geoGap: 7, noise: 0.14,
-    url: "https://apnews.com/article/bird-flu-dairy-farms-outbreak",
-    data: [0,3, 3,3, 3,3, 1,1, 2,1] },
-  { label: "Tesla recalls 200K vehicles over autopilot concerns", size: 88, cat: "business", polGap: 0, geoGap: 4, noise: 0.41,
-    url: "https://cnbc.com/tesla-recall-200k-autopilot-concerns",
-    data: [1,3, 3,2, 3,3, 2,2, 2,1] },
-  { label: "Israel reshaping Lebanon border zone as buffer", size: 85, cat: "world", polGap: -3, geoGap: -5, noise: 0.07,
-    url: "https://nytimes.com/2026/03/13/world/middleeast/israel-lebanon-border.html",
-    data: [3,2, 3,2, 3,4, 2,1, 2,0] },
-  { label: "Medicaid cuts threaten rural hospital closures", size: 78, cat: "health", polGap: 9, geoGap: 8, noise: 0.05,
-    url: "https://washingtonpost.com/health/medicaid-cuts-rural-hospitals",
-    data: [0,3, 3,3, 2,2, 1,1, 0,0] },
-  { label: "North Korea tests new ICBM amid stalled diplomacy", size: 72, cat: "world", polGap: 0, geoGap: -3, noise: 0.10,
-    url: "https://bbc.com/news/world-asia-north-korea-icbm-test",
-    data: [1,2, 2,2, 3,3, 1,1, 1,0] },
-  { label: "Oscar nominations announced, Anora leads with 8 nods", size: 65, cat: "entertainment", polGap: 1, geoGap: 3, noise: 0.72,
-    url: "https://variety.com/2026/film/news/oscar-nominations-anora-leads",
-    data: [1,2, 2,1, 2,1, 0,1, 1,0] },
-  { label: "Amazon warehouse workers vote to unionize in Texas", size: 58, cat: "business", polGap: 7, geoGap: 6, noise: 0.16,
-    url: "https://nytimes.com/2026/03/12/business/amazon-union-texas.html",
-    data: [1,2, 2,2, 2,1, 0,1, 0,0] },
-  { label: "Antarctic ice shelf collapse accelerates beyond models", size: 52, cat: "science", polGap: 5, geoGap: -2, noise: 0.03,
-    url: "https://theguardian.com/environment/antarctic-ice-shelf-collapse",
-    data: [2,1, 2,1, 2,2, 0,0, 0,0] },
+  { label: "Why did Trump remove Kristi Noem as DHS secretary; who is Markwayne Mullin?", size: 51, cat: 'politics', polGap: -4, geoGap: 24, noise: 0.16, url: '#',
+    data: [1,1,1,0,2,1,2,0,1,0,0,0,0,0,4,0,0,0,3,1,0,0,1,0,1,0,2,2,0,0,2,0,0,0,2,0,3,0,0,0,2,0,6,1,1,0,1,0,3,0] },
+  { label: "Rescuers search for 10 missing skiers after California avalanche", size: 47, cat: 'science', polGap: 1, geoGap: 15, noise: 0.89, url: '#',
+    data: [0,0,1,1,1,1,3,2,1,1,1,1,1,1,2,2,2,2,0,0,0,0,2,1,5,5,2,2,1,1,2,2,2,2,0,0,1,1,1,0,5,4,1,1,0,0,0,0,1,1] },
+  { label: "Israel strikes Hezbollah in Lebanon after Iran-allied group launches missiles", size: 46, cat: 'politics', polGap: 1, geoGap: 1, noise: 0.94, url: '#',
+    data: [3,3,0,0,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,3,2,2,2,0,0,6,5,0,0,0,0,9,9,1,1,0,0,0,0,0,0,0,0,0,0] },
+  { label: "Supreme Court strikes down Trump's tariffs", size: 46, cat: 'politics', polGap: 11, geoGap: 30, noise: 0.83, url: '#',
+    data: [0,0,1,1,0,0,3,2,2,2,0,0,1,1,3,3,0,0,3,1,0,0,0,0,2,2,10,8,1,1,2,2,1,1,2,2,4,3,0,0,3,3,0,0,0,0,0,0,2,1] },
+  { label: "Raiders say Ravens have backed out of deal to send Maxx Crosby to Baltimore", size: 44, cat: 'sports', polGap: 3, geoGap: 40, noise: 0.14, url: '#',
+    data: [1,0,0,0,0,0,5,3,1,1,1,0,0,0,3,0,0,0,0,0,0,0,14,0,0,0,3,0,0,0,1,0,7,0,0,0,0,0,0,0,6,2,2,0,0,0,0,0,0,0] },
+  { label: "Russia poisoned Alexei Navalny with lethal frog toxin, European nations say", size: 42, cat: 'politics', polGap: 5, geoGap: -1, noise: 0.92, url: '#',
+    data: [3,3,1,1,3,3,1,1,1,1,1,1,1,1,2,2,2,2,0,0,1,1,0,0,5,5,1,1,2,1,5,4,2,1,1,1,1,1,2,2,1,1,1,1,0,0,0,0,2,2] },
+  { label: "Glove found near Nancy Guthrie's home appears to match one worn by suspect", size: 39, cat: 'entertainment', polGap: -2, geoGap: 16, noise: 0.47, url: '#',
+    data: [2,2,2,0,0,0,0,0,0,0,1,0,1,1,4,0,1,1,0,0,0,0,3,1,1,0,2,2,1,1,3,2,2,0,1,1,0,0,2,1,3,1,5,3,0,0,0,0,0,0] },
+  { label: "Stephen Colbert says CBS barred interview with Texas Democratic candidate", size: 39, cat: 'technology', polGap: -6, geoGap: 22, noise: 0.19, url: '#',
+    data: [0,0,0,0,1,1,0,0,2,1,0,0,0,0,3,0,0,0,1,1,2,0,1,0,1,0,3,1,1,0,2,1,0,0,2,0,2,1,0,0,4,0,4,0,1,0,0,0,2,0] },
+  { label: "Pakistan warplanes bomb Kabul; Islamabad declares 'open war' on Afghanistan", size: 38, cat: 'politics', polGap: 11, geoGap: -21, noise: 0.94, url: '#',
+    data: [3,3,0,0,6,6,0,0,0,0,2,2,0,0,0,0,1,1,0,0,0,0,0,0,7,5,1,1,3,3,7,7,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0] },
+  { label: "U.S. Refueling Plane Crashes in Iraq, Military Says", size: 38, cat: 'politics', polGap: 5, geoGap: 12, noise: 0.88, url: '#',
+    data: [1,1,1,1,1,1,1,1,1,0,1,1,2,2,5,5,1,1,1,1,0,0,1,1,3,1,2,2,1,1,4,3,0,0,2,2,2,2,1,1,2,2,1,1,0,0,0,0,0,0] },
+  { label: "In Munich, Rubio urges transatlantic unity but lashes Europe on migration", size: 37, cat: 'politics', polGap: 6, geoGap: 7, noise: 0.41, url: '#',
+    data: [0,0,4,4,2,1,3,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,2,1,1,0,1,1,5,1,0,0,1,1,1,0,1,1,2,0,1,0,0,0,0,0,1,0] },
+  { label: "Land in focus at Geneva peace talks between Russia and Ukraine", size: 37, cat: 'politics', polGap: 11, geoGap: -6, noise: 0.93, url: '#',
+    data: [1,1,1,1,5,4,1,1,2,2,1,1,0,0,0,0,2,2,0,0,0,0,1,1,2,2,3,3,2,2,6,5,0,0,0,0,0,0,0,0,1,1,0,0,0,0,2,2,0,0] },
+  { label: "Trump says he's replacing Noem with GOP Sen. Markwayne Mullin", size: 37, cat: 'politics', polGap: -1, geoGap: 17, noise: 0.26, url: '#',
+    data: [1,0,0,0,0,0,2,1,1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,1,2,0,3,1,1,0,1,0,2,1,3,1,2,0,0,0,5,0,0,0,1,0,0,0,1,0] },
+  { label: "Israeli Military Says It Is Striking Hezbollah in Lebanon", size: 36, cat: 'politics', polGap: 1, geoGap: -4, noise: 1.00, url: '#',
+    data: [0,0,1,1,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,3,3,0,0,5,5,0,0,0,0,3,3,5,5,1,1,0,0,0,0,0,0,0,0] },
+  { label: "Police respond to active shooter at Detroit-area synagogue", size: 36, cat: 'politics', polGap: 3, geoGap: 17, noise: 0.97, url: '#',
+    data: [1,1,2,2,1,1,3,3,0,0,1,1,1,1,2,2,1,1,1,1,0,0,2,2,2,2,3,3,1,1,1,1,2,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,3,3] },
+  { label: "Two killed, 3 critical after shooting at hockey rink in Rhode Island", size: 36, cat: 'politics', polGap: 4, geoGap: 18, noise: 0.58, url: '#',
+    data: [1,0,1,1,1,1,1,1,2,1,1,1,0,0,3,2,1,0,1,0,0,0,2,2,0,0,2,2,1,0,0,0,2,1,1,0,1,1,0,0,2,1,1,1,0,0,1,0,1,0] },
+  { label: "Barack Obama says aliens 'are real', but not in Area 51", size: 35, cat: 'technology', polGap: 1, geoGap: 14, noise: 0.03, url: '#',
+    data: [2,0,2,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,3,1,2,0,1,0,1,0,0,0,2,0,3,0,0,0,1,0,2,0,2,0,0,0,1,0,2,0] },
+  { label: "Grey's Anatomy star Eric Dane dies at 53 after ALS diagnosis", size: 35, cat: 'health', polGap: 3, geoGap: 11, noise: 0.00, url: '#',
+    data: [1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,2,0,3,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,4,0,0,0,0,0,1,0] },
+  { label: "Mexican cartel head 'El Mencho' killed during Jalisco military operation", size: 35, cat: 'technology', polGap: -1, geoGap: 6, noise: 0.96, url: '#',
+    data: [0,0,2,1,1,1,0,0,0,0,1,1,1,1,2,2,1,1,0,0,0,0,2,2,2,2,1,1,0,0,4,4,2,2,0,0,1,1,3,3,0,0,1,1,0,0,0,0,2,2] },
+  { label: "Who is Mojtaba Khamenei, Iran's new supreme leader?", size: 35, cat: 'politics', polGap: 1, geoGap: 9, noise: 0.90, url: '#',
+    data: [0,0,0,0,3,1,4,4,0,0,2,2,0,0,0,0,0,0,1,1,1,1,2,1,3,3,0,0,1,1,1,1,1,1,1,1,3,3,2,2,3,3,1,1,0,0,0,0,0,0] },
 ];
 
+// Heat cell: intensity from count, color from PI ratio (red→yellow→green)
+function getHeatStyle(count, piCount) {
+  if (count === 0) return { bg: 'transparent', fg: 'transparent' };
+  const piRate = piCount / count;
+  // Intensity: opacity from 0.10 (1 article) to 0.70 (10+ articles)
+  const alpha = Math.min(0.10 + (count - 1) * 0.07, 0.70);
+  // Color: red (low PI) → yellow (mid) → green (high PI)
+  let r, g, b;
+  if (piRate <= 0.5) {
+    // Red to Yellow: piRate 0→0.5 maps r:180→190, g:60→160, b:50→50
+    const t = piRate / 0.5;
+    r = Math.round(180 + t * 10);
+    g = Math.round(60 + t * 100);
+    b = 50;
+  } else {
+    // Yellow to Green: piRate 0.5→1.0 maps r:190→50, g:160→150, b:50→70
+    const t = (piRate - 0.5) / 0.5;
+    r = Math.round(190 - t * 140);
+    g = Math.round(160 - t * 10);
+    b = Math.round(50 + t * 20);
+  }
+  const bg = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+  const fg = alpha > 0.45 ? '#fff' : (alpha > 0.25 ? '#2D2B28' : '#6B6560');
+  return { bg, fg };
+}
+
+// Legacy class-based function for compatibility
 function getHeatClass(val) {
-  if (val === 0) return 'heat-0';
-  if (val === 1) return 'heat-1';
-  if (val === 2) return 'heat-2';
-  if (val === 3) return 'heat-3';
-  if (val <= 5) return 'heat-4';
-  if (val <= 7) return 'heat-5';
-  if (val <= 9) return 'heat-6';
-  return 'heat-7';
+  return ''; // no longer used for styling
 }
 
 function gapClass(val) {
@@ -1073,15 +1105,21 @@ function gapClass(val) {
 }
 
 function noiseClass(val) {
-  if (val <= 0.15) return 'noise-low';
-  if (val <= 0.30) return 'noise-med';
+  if (val >= 0.70) return 'noise-low';
+  if (val >= 0.40) return 'noise-med';
   return 'noise-high';
 }
 
-// Outlet index map: data array indices for each outlet name
+// Outlet index map: data array indices for each outlet name (paired: count at idx*2, pi at idx*2+1)
 const outletIndex = {};
 let idx = 0;
 defaultOutlets.forEach(o => { if (o !== '|') { outletIndex[o] = idx++; } });
+// Helper to get count and pi_count from paired data array
+function getCellData(data, outletName) {
+  const i = outletIndex[outletName];
+  if (i === undefined) return { count: 0, pi: 0 };
+  return { count: data[i * 2] || 0, pi: data[i * 2 + 1] || 0 };
+}
 
 function renderTable(list) {
   const data = list || clusters;
@@ -1092,7 +1130,7 @@ function renderTable(list) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="meta-cell row-num sticky-col sticky-col-0">${i + 1}</td>
-      <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a></td>
+      <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><div class="cluster-cell-inner"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a><a href="/cluster/${i+1}" class="cluster-inspect" title="Full coverage"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="10" height="8" rx="1.5"/><path d="M5 5V4a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0111 4v1"/><line x1="6" y1="8" x2="10" y2="8"/><line x1="6" y1="10.5" x2="9" y2="10.5"/></svg></a></div></td>
       <td class="meta-cell size-cell sticky-col sticky-col-2">${c.size}</td>
       <td class="meta-cell category-cell sticky-col sticky-col-3">${c.cat}</td>
       <td class="meta-cell num-cell sticky-col sticky-col-4 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
@@ -1102,13 +1140,17 @@ function renderTable(list) {
 
     if (isGrouped) {
       groups.forEach(g => {
-        const sum = g.outlets.reduce((s, o) => s + (c.data[outletIndex[o]] || 0), 0);
+        let sumCount = 0, sumPi = 0;
+        g.outlets.forEach(o => { const d = getCellData(c.data, o); sumCount += d.count; sumPi += d.pi; });
+        const style = getHeatStyle(sumCount, sumPi);
         const td = document.createElement('td');
-        td.className = `heat-cell ${getHeatClass(sum)}`;
-        td.textContent = sum || '';
+        td.className = 'heat-cell';
+        td.style.background = style.bg;
+        td.style.color = style.fg;
+        td.textContent = sumCount || '';
         td.dataset.outlet = g.label;
         td.dataset.cluster = c.label;
-        td.dataset.count = sum;
+        td.dataset.count = sumCount;
         tr.appendChild(td);
       });
     } else {
@@ -1119,13 +1161,16 @@ function renderTable(list) {
           tr.appendChild(div);
         }
         g.outlets.forEach(o => {
-          const val = c.data[outletIndex[o]] || 0;
+          const d = getCellData(c.data, o);
+          const style = getHeatStyle(d.count, d.pi);
           const td = document.createElement('td');
-          td.className = `heat-cell ${getHeatClass(val)}`;
-          td.textContent = val || '';
+          td.className = 'heat-cell';
+          td.style.background = style.bg;
+          td.style.color = style.fg;
+          td.textContent = d.count || '';
           td.dataset.outlet = o;
           td.dataset.cluster = c.label;
-          td.dataset.count = val;
+          td.dataset.count = d.count;
           tr.appendChild(td);
         });
       });
@@ -1314,18 +1359,14 @@ document.querySelectorAll('.time-chip').forEach(chip => {
 let currentView = 'outlets-bias';
 
 const biasGroups = [
-  { label: 'LEFT', cls: 'bg-left', outlets: ['Guardian','CNN'] },
-  { label: 'LEAN LEFT', cls: 'bg-leanleft', outlets: ['NYT','WaPo'] },
-  { label: 'CENTER', cls: 'bg-center', outlets: ['AP','Reuters'] },
-  { label: 'LEAN RIGHT', cls: 'bg-leanright', outlets: ['WSJ','NY Post'] },
-  { label: 'RIGHT', cls: 'bg-right', outlets: ['Fox News','Daily Wire'] },
+  { label: 'LEFT', cls: 'bg-left', outlets: ['Guardian','CNN','Al Jazeera','NYT','WaPo','NBC','LA Times'] },
+  { label: 'CENTER', cls: 'bg-center', outlets: ['CBS','ABC','Politico','Axios','Newsweek','BBC','AP','SCMP','Reuters','USA Today','The Hill'] },
+  { label: 'RIGHT', cls: 'bg-right', outlets: ['WSJ','J Post','NY Post','Fox News','Natl Review','RT','Daily Wire'] },
 ];
 const regionGroups = [
-  { label: 'US', cls: 'bg-center', outlets: ['CNN','NYT','WaPo','AP','WSJ','NY Post','Fox News','Daily Wire'] },
-  { label: 'CA', cls: 'bg-leanleft', outlets: [] },
-  { label: 'EMEA', cls: 'bg-left', outlets: ['Guardian','Reuters'] },
-  { label: 'APAC', cls: 'bg-leanright', outlets: [] },
-  { label: 'LATAM', cls: 'bg-right', outlets: [] },
+  { label: 'US', cls: 'bg-center', outlets: ['CNN','NYT','WaPo','NBC','LA Times','CBS','ABC','Politico','Axios','Newsweek','AP','USA Today','The Hill','WSJ','NY Post','Fox News','Natl Review','Daily Wire'] },
+  { label: 'EMEA', cls: 'bg-left', outlets: ['Guardian','Al Jazeera','BBC','Reuters','J Post','RT'] },
+  { label: 'APAC', cls: 'bg-leanright', outlets: ['SCMP'] },
 ];
 
 function setView(view) {
@@ -1353,7 +1394,7 @@ function renderHead() {
         <th class="meta-col sticky-col sticky-col-3">Cat ${arrow}</th>
         <th class="meta-col sticky-col sticky-col-4" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
         <th class="meta-col sticky-col sticky-col-5" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-6" style="text-align:right;padding-right:10px;">Noise ${arrow}</th>`;
+        <th class="meta-col sticky-col sticky-col-6" style="text-align:right;padding-right:10px;">PI % ${arrow}</th>`;
 
   if (isGrouped) {
     thead.innerHTML = `
@@ -1396,7 +1437,7 @@ const searchTermEl = document.getElementById('searchTerm');
 const searchCountEl = document.getElementById('searchCount');
 const totalClusters = clusters.length;
 
-searchInput.addEventListener('input', () => {
+function executeSearch() {
   const query = searchInput.value.trim().toLowerCase();
   if (query.length === 0) {
     searchFeedback.classList.remove('visible');
@@ -1409,6 +1450,9 @@ searchInput.addEventListener('input', () => {
   const filtered = clusters.filter(c => c.label.toLowerCase().includes(query));
   searchCountEl.textContent = filtered.length + ' / ' + totalClusters;
   renderTable(filtered);
+}
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') executeSearch();
 });
 
 // ── Trending fill ──
