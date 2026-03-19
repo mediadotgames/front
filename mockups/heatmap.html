@@ -346,6 +346,12 @@
     font-weight: 500;
   }
 
+  .view-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-right: 6px;
+  }
   .view-select {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -427,7 +433,42 @@
     color: var(--text-tertiary);
   }
 
-  /* ── Source selector ── */
+  /* ── Drawer group toggle (split button) ── */
+  .drawer-group-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-left: auto;
+  }
+  .drawer-group-toggle .view-by-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .drawer-group-btn {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    background: var(--tag-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+  .drawer-group-btn:first-of-type { border-radius: 4px 0 0 4px; border-right: none; }
+  .drawer-group-btn:last-of-type { border-radius: 0 4px 4px 0; }
+  .drawer-group-btn:hover { background: var(--surface-hover); }
+  .drawer-group-btn.active {
+    background: var(--brand-bg);
+    border-color: var(--brand-border);
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  /* ── Outlet selector ── */
   .outlet-group { margin-bottom: 14px; }
   .outlet-group:last-child { margin-bottom: 0; }
   .outlet-group-header {
@@ -584,9 +625,9 @@
   .heatmap-table .sticky-col {
     position: sticky;
     z-index: 5;
-    background: var(--surface-white);
+    background: var(--surface);
   }
-  .heatmap-table tbody .sticky-col { background: var(--bg); }
+  .heatmap-table tbody .sticky-col { background: var(--surface-white); }
   .heatmap-table tbody tr:hover .sticky-col { background: var(--row-hover); }
   .sticky-col-0 { left: 0; min-width: 28px; }
   .sticky-col-1 { left: 28px; min-width: 260px; }
@@ -605,7 +646,7 @@
     letter-spacing: 1px;
     border-bottom: none;
     text-align: center;
-    background: var(--surface-white);
+    background: var(--surface);
     transition: background 0.3s;
   }
   .bg-left { color: var(--gap-left); }
@@ -618,13 +659,13 @@
   [data-theme="dark"] .bg-leanright { color: #fca5a5; }
 
   .heatmap-table thead th {
-    background: var(--surface-white);
+    background: var(--surface);
     padding: 6px 4px;
     font-weight: 600;
     font-size: 11px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--text-secondary);
-    border-bottom: 2px solid var(--border);
+    border-bottom: none;
     text-align: center;
     white-space: nowrap;
     z-index: 10;
@@ -648,9 +689,10 @@
     transform: rotate(180deg);
     height: 72px;
     vertical-align: bottom;
-    padding: 6px 2px;
+    padding: 6px 4px;
     font-size: 10px;
     cursor: pointer;
+    text-align: center;
   }
   .heatmap-table thead th.outlet-col:hover { color: var(--brand); }
 
@@ -718,8 +760,8 @@
   .row-num { color: var(--text-tertiary); font-size: 11px; min-width: 28px; text-align: right; padding-right: 6px; }
 
   .divider-col {
-    width: 2px !important; min-width: 2px !important; max-width: 2px !important;
-    padding: 0 !important; border: none !important; background: var(--border-light);
+    width: 6px !important; min-width: 6px !important; max-width: 6px !important;
+    padding: 0 !important; border: none !important; background: transparent;
   }
 
   .footer {
@@ -745,6 +787,7 @@
   /* ── Preset toggles in drawer ── */
   .preset-toggles {
     display: flex;
+    align-items: center;
     gap: 8px;
     margin-bottom: 14px;
   }
@@ -803,19 +846,19 @@
   </div>
 </div>
 
-<!-- ═══ ROW 2: Search bar + Sources & Advanced Filters buttons ═══ -->
+<!-- ═══ ROW 2: Search bar + Outlets & Advanced Filters buttons ═══ -->
 <div class="toolbar-wrapper">
   <div class="search-row">
     <div class="search-bar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Search for topics, events & sources">
+      <input type="text" placeholder="Search for topics, events & outlets">
       <span class="search-count" id="searchCount">344 / 344</span>
     </div>
 
-    <button class="tb-btn" id="btnSources" onclick="toggleDrawer('sources')">
+    <button class="tb-btn" id="btnOutlets" onclick="toggleDrawer('outlets')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Sources
-      <span class="tb-count" id="sourceCount">10</span>
+      Outlets
+      <span class="tb-count" id="outletCount">10</span>
     </button>
 
     <button class="tb-btn" id="btnFilters" onclick="toggleDrawer('filters')">
@@ -824,104 +867,31 @@
     </button>
   </div>
 
-  <!-- ── Sources Drawer ── -->
-  <div class="drawer" id="drawerSources">
+  <!-- ── Outlets Drawer ── -->
+  <div class="drawer" id="drawerOutlets">
     <div class="drawer-col-title">
-      Select Sources
-      <span class="drawer-col-subtitle" id="sourceSummary">10 of 28 selected</span>
+      Select Outlets
+      <span class="drawer-col-subtitle" id="outletSummary">10 of 28 selected</span>
     </div>
 
     <div class="preset-toggles">
-      <label class="preset-toggle" id="presetWH">
-        <input type="checkbox" onchange="togglePreset('wh', this.checked)"> WH Press Corps sources only
+      <label class="preset-toggle active" id="presetAll">
+        <input type="checkbox" checked onchange="togglePreset('all', this.checked)"> All
       </label>
       <label class="preset-toggle" id="presetUS">
-        <input type="checkbox" onchange="togglePreset('us', this.checked)"> US sources only
+        <input type="checkbox" onchange="togglePreset('us', this.checked)"> US only
       </label>
-    </div>
-
-    <div class="outlet-group">
-      <div class="outlet-group-header">
-        <input type="checkbox" id="grpLeft" onchange="toggleGroup('left', this.checked)">
-        <label class="outlet-group-label" for="grpLeft">Left</label>
-        <span class="outlet-group-count">4 sources</span>
-        <div class="outlet-group-bias-bar bias-bar-left"></div>
-      </div>
-      <div class="outlet-chips" id="chipsLeft">
-        <label class="outlet-chip" data-outlet="MSNBC"><input type="checkbox"> MS NOW</label>
-        <label class="outlet-chip selected" data-outlet="Guardian"><input type="checkbox" checked> Guardian</label>
-        <label class="outlet-chip selected" data-outlet="CNN"><input type="checkbox" checked> CNN</label>
-        <label class="outlet-chip" data-outlet="Al Jazeera"><input type="checkbox"> Al Jazeera</label>
+      <label class="preset-toggle" id="presetWH">
+        <input type="checkbox" onchange="togglePreset('wh', this.checked)"> WH Press Corps only
+      </label>
+      <div class="drawer-group-toggle">
+        <span class="view-by-label">View by:</span>
+        <button class="drawer-group-btn active" id="drawerGroupBias" onclick="setDrawerGroup('bias')">Bias</button>
+        <button class="drawer-group-btn" id="drawerGroupRegion" onclick="setDrawerGroup('region')">Region</button>
       </div>
     </div>
 
-    <div class="outlet-group">
-      <div class="outlet-group-header">
-        <input type="checkbox" id="grpLeanLeft" onchange="toggleGroup('leanleft', this.checked)">
-        <label class="outlet-group-label" for="grpLeanLeft">Lean Left</label>
-        <span class="outlet-group-count">7 sources</span>
-        <div class="outlet-group-bias-bar bias-bar-leanleft"></div>
-      </div>
-      <div class="outlet-chips" id="chipsLeanLeft">
-        <label class="outlet-chip selected" data-outlet="NYT"><input type="checkbox" checked> NYT</label>
-        <label class="outlet-chip selected" data-outlet="WaPo"><input type="checkbox" checked> WaPo</label>
-        <label class="outlet-chip" data-outlet="LA Times"><input type="checkbox"> LA Times</label>
-        <label class="outlet-chip" data-outlet="NBC"><input type="checkbox"> NBC</label>
-        <label class="outlet-chip" data-outlet="CBS"><input type="checkbox"> CBS</label>
-        <label class="outlet-chip" data-outlet="ABC"><input type="checkbox"> ABC</label>
-        <label class="outlet-chip" data-outlet="Politico"><input type="checkbox"> Politico</label>
-      </div>
-    </div>
-
-    <div class="outlet-group">
-      <div class="outlet-group-header">
-        <input type="checkbox" id="grpCenter" onchange="toggleGroup('center', this.checked)">
-        <label class="outlet-group-label" for="grpCenter">Center</label>
-        <span class="outlet-group-count">10 sources</span>
-        <div class="outlet-group-bias-bar bias-bar-center"></div>
-      </div>
-      <div class="outlet-chips" id="chipsCenter">
-        <label class="outlet-chip" data-outlet="Axios"><input type="checkbox"> Axios</label>
-        <label class="outlet-chip" data-outlet="Bloomberg"><input type="checkbox"> Bloomberg</label>
-        <label class="outlet-chip" data-outlet="Yahoo"><input type="checkbox"> Yahoo</label>
-        <label class="outlet-chip" data-outlet="BBC"><input type="checkbox"> BBC</label>
-        <label class="outlet-chip" data-outlet="Newsweek"><input type="checkbox"> Newsweek</label>
-        <label class="outlet-chip selected" data-outlet="AP"><input type="checkbox" checked> AP</label>
-        <label class="outlet-chip selected" data-outlet="Reuters"><input type="checkbox" checked> Reuters</label>
-        <label class="outlet-chip" data-outlet="SCMP"><input type="checkbox"> SCMP</label>
-        <label class="outlet-chip" data-outlet="The Hill"><input type="checkbox"> The Hill</label>
-        <label class="outlet-chip" data-outlet="USA Today"><input type="checkbox"> USA Today</label>
-      </div>
-    </div>
-
-    <div class="outlet-group">
-      <div class="outlet-group-header">
-        <input type="checkbox" id="grpLeanRight" onchange="toggleGroup('leanright', this.checked)">
-        <label class="outlet-group-label" for="grpLeanRight">Lean Right</label>
-        <span class="outlet-group-count">3 sources</span>
-        <div class="outlet-group-bias-bar bias-bar-leanright"></div>
-      </div>
-      <div class="outlet-chips" id="chipsLeanRight">
-        <label class="outlet-chip selected" data-outlet="WSJ"><input type="checkbox" checked> WSJ</label>
-        <label class="outlet-chip" data-outlet="J Post"><input type="checkbox"> J Post</label>
-        <label class="outlet-chip selected" data-outlet="NY Post"><input type="checkbox" checked> NY Post</label>
-      </div>
-    </div>
-
-    <div class="outlet-group">
-      <div class="outlet-group-header">
-        <input type="checkbox" id="grpRight" onchange="toggleGroup('right', this.checked)">
-        <label class="outlet-group-label" for="grpRight">Right</label>
-        <span class="outlet-group-count">4 sources</span>
-        <div class="outlet-group-bias-bar bias-bar-right"></div>
-      </div>
-      <div class="outlet-chips" id="chipsRight">
-        <label class="outlet-chip selected" data-outlet="Fox News"><input type="checkbox" checked> Fox News</label>
-        <label class="outlet-chip" data-outlet="Natl Review"><input type="checkbox"> Natl Review</label>
-        <label class="outlet-chip" data-outlet="RT"><input type="checkbox"> RT</label>
-        <label class="outlet-chip selected" data-outlet="Daily Wire"><input type="checkbox" checked> Daily Wire</label>
-      </div>
-    </div>
+    <div id="outletGroupsContainer"></div>
   </div>
 
   <!-- ── Advanced Filters Drawer ── -->
@@ -1028,6 +998,7 @@
     <span class="qf-chip active" onclick="this.classList.toggle('active')">Last 7 days</span>
   </div>
   <div class="filters-right">
+    <span class="view-label">Table view:</span>
     <select class="view-select" id="viewSelect" onchange="setView(this.value)">
       <option value="outlets-bias" selected>Outlets by Bias</option>
       <option value="outlets-region">Outlets by Region</option>
@@ -1058,7 +1029,7 @@
 </div>
 
 <div class="footer">
-  media.games · Coverage heatmap · Sources ordered by Ad Fontes Media bias score (left → right)
+  media.games · Coverage heatmap · Outlets ordered by Ad Fontes Media bias score (left → right)
 </div>
 
 <script>
@@ -1224,66 +1195,158 @@ function renderTable(list) {
 
 // ── Drawers ──
 function toggleDrawer(which) {
-  const sources = document.getElementById('drawerSources');
+  const outlets = document.getElementById('drawerOutlets');
   const filters = document.getElementById('drawerFilters');
   const overlay = document.getElementById('drawerOverlay');
-  const btnS = document.getElementById('btnSources');
+  const btnO = document.getElementById('btnOutlets');
   const btnF = document.getElementById('btnFilters');
 
-  if (which === 'sources') {
-    const isOpen = sources.classList.contains('visible');
-    sources.classList.toggle('visible');
+  if (which === 'outlets') {
+    const isOpen = outlets.classList.contains('visible');
+    outlets.classList.toggle('visible');
     filters.classList.remove('visible');
-    btnS.classList.toggle('active', !isOpen);
+    btnO.classList.toggle('active', !isOpen);
     btnF.classList.remove('active');
     overlay.classList.toggle('visible', !isOpen);
   } else {
     const isOpen = filters.classList.contains('visible');
     filters.classList.toggle('visible');
-    sources.classList.remove('visible');
+    outlets.classList.remove('visible');
     btnF.classList.toggle('active', !isOpen);
-    btnS.classList.remove('active');
+    btnO.classList.remove('active');
     overlay.classList.toggle('visible', !isOpen);
   }
 }
 
 function closeDrawers() {
-  document.getElementById('drawerSources').classList.remove('visible');
+  document.getElementById('drawerOutlets').classList.remove('visible');
   document.getElementById('drawerFilters').classList.remove('visible');
   document.getElementById('drawerOverlay').classList.remove('visible');
-  document.getElementById('btnSources').classList.remove('active');
+  document.getElementById('btnOutlets').classList.remove('active');
   document.getElementById('btnFilters').classList.remove('active');
 }
 
-// ── Source chips ──
-document.querySelectorAll('.outlet-chip').forEach(chip => {
-  chip.addEventListener('click', (e) => {
-    if (e.target.tagName === 'INPUT') {
-      chip.classList.toggle('selected', e.target.checked);
-    } else {
-      const cb = chip.querySelector('input');
-      cb.checked = !cb.checked;
-      chip.classList.toggle('selected', cb.checked);
-    }
-    updateSourceCount();
-  });
-});
+// ── Outlet drawer: data & dynamic rendering ──
+const allOutlets = [
+  { name: 'MSNBC', display: 'MS NOW', bias: 'left', region: 'US' },
+  { name: 'Guardian', display: 'Guardian', bias: 'left', region: 'EMEA' },
+  { name: 'CNN', display: 'CNN', bias: 'left', region: 'US' },
+  { name: 'Al Jazeera', display: 'Al Jazeera', bias: 'left', region: 'EMEA' },
+  { name: 'NYT', display: 'NYT', bias: 'leanleft', region: 'US' },
+  { name: 'WaPo', display: 'WaPo', bias: 'leanleft', region: 'US' },
+  { name: 'LA Times', display: 'LA Times', bias: 'leanleft', region: 'US' },
+  { name: 'NBC', display: 'NBC', bias: 'leanleft', region: 'US' },
+  { name: 'CBS', display: 'CBS', bias: 'leanleft', region: 'US' },
+  { name: 'ABC', display: 'ABC', bias: 'leanleft', region: 'US' },
+  { name: 'Politico', display: 'Politico', bias: 'leanleft', region: 'US' },
+  { name: 'Axios', display: 'Axios', bias: 'center', region: 'US' },
+  { name: 'Bloomberg', display: 'Bloomberg', bias: 'center', region: 'US' },
+  { name: 'Yahoo', display: 'Yahoo', bias: 'center', region: 'US' },
+  { name: 'BBC', display: 'BBC', bias: 'center', region: 'EMEA' },
+  { name: 'Newsweek', display: 'Newsweek', bias: 'center', region: 'US' },
+  { name: 'AP', display: 'AP', bias: 'center', region: 'US' },
+  { name: 'Reuters', display: 'Reuters', bias: 'center', region: 'EMEA' },
+  { name: 'SCMP', display: 'SCMP', bias: 'center', region: 'APAC' },
+  { name: 'The Hill', display: 'The Hill', bias: 'center', region: 'US' },
+  { name: 'USA Today', display: 'USA Today', bias: 'center', region: 'US' },
+  { name: 'WSJ', display: 'WSJ', bias: 'leanright', region: 'US' },
+  { name: 'J Post', display: 'J Post', bias: 'leanright', region: 'EMEA' },
+  { name: 'NY Post', display: 'NY Post', bias: 'leanright', region: 'US' },
+  { name: 'Fox News', display: 'Fox News', bias: 'right', region: 'US' },
+  { name: 'Natl Review', display: 'Natl Review', bias: 'right', region: 'US' },
+  { name: 'RT', display: 'RT', bias: 'right', region: 'EMEA' },
+  { name: 'Daily Wire', display: 'Daily Wire', bias: 'right', region: 'US' },
+];
 
-function toggleGroup(group, checked) {
-  const groupMap = { left: 'chipsLeft', leanleft: 'chipsLeanLeft', center: 'chipsCenter', leanright: 'chipsLeanRight', right: 'chipsRight' };
-  const container = document.getElementById(groupMap[group]);
+// Track selected state by outlet name
+const selectedOutlets = new Set(['Guardian','CNN','NYT','WaPo','AP','Reuters','WSJ','NY Post','Fox News','Daily Wire']);
+
+const drawerGroupDefs = {
+  bias: [
+    { key: 'left', label: 'Left', barClass: 'bias-bar-left' },
+    { key: 'leanleft', label: 'Lean Left', barClass: 'bias-bar-leanleft' },
+    { key: 'center', label: 'Center', barClass: 'bias-bar-center' },
+    { key: 'leanright', label: 'Lean Right', barClass: 'bias-bar-leanright' },
+    { key: 'right', label: 'Right', barClass: 'bias-bar-right' },
+  ],
+  region: [
+    { key: 'US', label: 'US', barClass: 'bias-bar-center' },
+    { key: 'EMEA', label: 'EMEA', barClass: 'bias-bar-left' },
+    { key: 'APAC', label: 'APAC', barClass: 'bias-bar-leanright' },
+    { key: 'CA', label: 'CA', barClass: 'bias-bar-leanleft' },
+    { key: 'LATAM', label: 'LATAM', barClass: 'bias-bar-right' },
+  ],
+};
+
+let currentDrawerGroup = 'bias';
+
+function renderOutletGroups() {
+  const container = document.getElementById('outletGroupsContainer');
+  const groups = drawerGroupDefs[currentDrawerGroup];
+  const field = currentDrawerGroup === 'bias' ? 'bias' : 'region';
+
+  container.innerHTML = groups.map(g => {
+    const outlets = allOutlets.filter(o => o[field] === g.key);
+    if (outlets.length === 0) return '';
+    const chips = outlets.map(o => {
+      const sel = selectedOutlets.has(o.name);
+      return `<label class="outlet-chip${sel ? ' selected' : ''}" data-outlet="${o.name}"><input type="checkbox"${sel ? ' checked' : ''}> ${o.display}</label>`;
+    }).join('');
+    return `
+      <div class="outlet-group">
+        <div class="outlet-group-header">
+          <input type="checkbox" data-group-key="${g.key}" onchange="toggleGroup('${g.key}', this.checked)">
+          <label class="outlet-group-label">${g.label}</label>
+          <span class="outlet-group-count">${outlets.length} outlets</span>
+          <div class="outlet-group-bias-bar ${g.barClass}"></div>
+        </div>
+        <div class="outlet-chips">${chips}</div>
+      </div>`;
+  }).join('');
+
+  // Re-attach chip click listeners
   container.querySelectorAll('.outlet-chip').forEach(chip => {
-    chip.querySelector('input').checked = checked;
-    chip.classList.toggle('selected', checked);
+    chip.addEventListener('click', (e) => {
+      if (e.target.tagName === 'INPUT') {
+        chip.classList.toggle('selected', e.target.checked);
+      } else {
+        const cb = chip.querySelector('input');
+        cb.checked = !cb.checked;
+        chip.classList.toggle('selected', cb.checked);
+      }
+      const name = chip.dataset.outlet;
+      if (chip.classList.contains('selected')) selectedOutlets.add(name);
+      else selectedOutlets.delete(name);
+      updateOutletCount();
+    });
   });
-  updateSourceCount();
 }
 
-function updateSourceCount() {
-  const count = document.querySelectorAll('.outlet-chip.selected').length;
-  document.getElementById('sourceCount').textContent = count;
-  document.getElementById('sourceSummary').textContent = count + ' of 28 selected';
+function toggleGroup(groupKey, checked) {
+  const field = currentDrawerGroup === 'bias' ? 'bias' : 'region';
+  allOutlets.filter(o => o[field] === groupKey).forEach(o => {
+    if (checked) selectedOutlets.add(o.name);
+    else selectedOutlets.delete(o.name);
+  });
+  renderOutletGroups();
+  updateOutletCount();
 }
+
+function updateOutletCount() {
+  const count = selectedOutlets.size;
+  document.getElementById('outletCount').textContent = count;
+  document.getElementById('outletSummary').textContent = count + ' of ' + allOutlets.length + ' selected';
+}
+
+function setDrawerGroup(mode) {
+  currentDrawerGroup = mode;
+  document.getElementById('drawerGroupBias').classList.toggle('active', mode === 'bias');
+  document.getElementById('drawerGroupRegion').classList.toggle('active', mode === 'region');
+  renderOutletGroups();
+}
+
+// Initial render
+renderOutletGroups();
 
 // ── Filter chips ──
 document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -1420,24 +1483,30 @@ const presets = {
 };
 
 function togglePreset(type, checked) {
-  // Uncheck the other preset
-  const other = type === 'wh' ? 'us' : 'wh';
-  const otherEl = document.getElementById(type === 'wh' ? 'presetUS' : 'presetWH');
-  otherEl.querySelector('input').checked = false;
-  otherEl.classList.remove('active');
+  // Uncheck all other presets
+  ['presetAll','presetUS','presetWH'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el.id !== 'preset' + type.charAt(0).toUpperCase() + type.slice(1) &&
+        el.id !== (type === 'all' ? 'presetAll' : type === 'us' ? 'presetUS' : 'presetWH')) {
+      el.querySelector('input').checked = false;
+      el.classList.remove('active');
+    }
+  });
 
-  const preset = presets[type];
-  const el = document.getElementById(type === 'wh' ? 'presetWH' : 'presetUS');
+  const el = document.getElementById(type === 'all' ? 'presetAll' : type === 'us' ? 'presetUS' : 'presetWH');
   el.classList.toggle('active', checked);
 
   if (checked) {
-    document.querySelectorAll('.outlet-chip').forEach(chip => {
-      const isIn = preset.includes(chip.dataset.outlet);
-      chip.querySelector('input').checked = isIn;
-      chip.classList.toggle('selected', isIn);
-    });
+    selectedOutlets.clear();
+    if (type === 'all') {
+      allOutlets.forEach(o => selectedOutlets.add(o.name));
+    } else {
+      const preset = presets[type];
+      preset.forEach(name => selectedOutlets.add(name));
+    }
+    renderOutletGroups();
   }
-  updateSourceCount();
+  updateOutletCount();
 }
 
 // ── Tooltip ──
