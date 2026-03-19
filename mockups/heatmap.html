@@ -603,10 +603,8 @@
   .heatmap-table tbody tr:hover .sticky-col { background: var(--row-hover); }
   .sticky-col-0 { left: 0; min-width: 28px; }
   .sticky-col-1 { left: 28px; min-width: 260px; }
-  .sticky-col-2 { left: 288px; min-width: 50px; }
-  .sticky-col-3 { left: 338px; min-width: 40px; }
-  .sticky-col-4 { left: 378px; min-width: 40px; }
-  .sticky-col-5 { left: 418px; min-width: 50px; box-shadow: 2px 0 4px rgba(0,0,0,0.04); }
+  .sticky-col-2 { left: 288px; min-width: 40px; }
+  .sticky-col-3 { left: 328px; min-width: 40px; box-shadow: 2px 0 4px rgba(0,0,0,0.04); }
 
   .bias-group-row th {
     padding: 6px 0 2px;
@@ -1103,7 +1101,7 @@ function getCellData(data, outletName) {
 }
 
 function renderTable(list) {
-  const data = list || clusters;
+  const data = [...(list || clusters)].sort((a, b) => sortAsc ? a.size - b.size : b.size - a.size);
   const tbody = document.getElementById('heatmapBody');
   const { isGrouped, groups } = getViewConfig();
   tbody.innerHTML = '';
@@ -1112,10 +1110,8 @@ function renderTable(list) {
     tr.innerHTML = `
       <td class="meta-cell row-num sticky-col sticky-col-0">${i + 1}</td>
       <td class="cluster-cell sticky-col sticky-col-1" title="${c.label}"><a href="${c.url}" target="_blank" class="cluster-link">${c.label}</a><div class="cluster-meta"><a href="/cluster/${i+1}">see all ${c.size} articles</a><span class="cat-tag">&middot; ${c.cat}</span></div></td>
-      <td class="meta-cell size-cell sticky-col sticky-col-2">${c.size}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-3 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-4 ${gapClass(c.geoGap)}">${c.geoGap > 0 ? '+' : ''}${c.geoGap}</td>
-      <td class="meta-cell num-cell sticky-col sticky-col-5 ${noiseClass(c.noise)}">${Math.round(c.noise * 100)}%</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-2 ${gapClass(c.polGap)}">${c.polGap > 0 ? '+' : ''}${c.polGap}</td>
+      <td class="meta-cell num-cell sticky-col sticky-col-3 ${gapClass(c.geoGap)}">${c.geoGap > 0 ? '+' : ''}${c.geoGap}</td>
     `;
 
     if (isGrouped) {
@@ -1351,6 +1347,14 @@ const regionGroups = [
   { label: 'APAC', cls: 'bg-leanright', outlets: ['SCMP'] },
 ];
 
+let sortAsc = false; // default: descending (biggest first)
+
+function toggleSort() {
+  sortAsc = !sortAsc;
+  renderHead();
+  renderTable();
+}
+
 function setView(view) {
   currentView = view;
   renderHead();
@@ -1366,16 +1370,14 @@ function getViewConfig() {
 function renderHead() {
   const thead = document.getElementById('heatmapHead');
   const { isGrouped, groups } = getViewConfig();
-  const metaCols = 6;
+  const metaCols = 4;
   const arrow = '<span class="sort-arrow">&#9660;</span>';
 
   const metaHeaders = `
         <th class="meta-col sticky-col sticky-col-0" style="min-width:28px;">#</th>
-        <th class="meta-col cluster-col sorted sticky-col sticky-col-1">Cluster ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-2">Size ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-3" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-4" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>
-        <th class="meta-col sticky-col sticky-col-5" style="text-align:right;padding-right:10px;">PI % ${arrow}</th>`;
+        <th class="meta-col cluster-col sorted sticky-col sticky-col-1" style="cursor:pointer;" onclick="toggleSort()">Cluster <span class="sort-arrow">${sortAsc ? '&#9650;' : '&#9660;'}</span></th>
+        <th class="meta-col sticky-col sticky-col-2" style="text-align:right;padding-right:10px;">Pol ${arrow}</th>
+        <th class="meta-col sticky-col sticky-col-3" style="text-align:right;padding-right:10px;">Geo ${arrow}</th>`;
 
   if (isGrouped) {
     thead.innerHTML = `
@@ -1399,8 +1401,6 @@ function renderHead() {
         <th class="bg-meta sticky-col sticky-col-1"></th>
         <th class="bg-meta sticky-col sticky-col-2"></th>
         <th class="bg-meta sticky-col sticky-col-3"></th>
-        <th class="bg-meta sticky-col sticky-col-4"></th>
-        <th class="bg-meta sticky-col sticky-col-5"></th>
         ${groupHeaders}
       </tr>
       <tr>
