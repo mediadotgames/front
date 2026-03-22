@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchHeatmap, fetchHeatmapSummary, fetchOutlets } from "../api/client";
 import type { HeatmapRow, HeatmapSummary, Outlet, PaginatedResponse } from "../api/types";
+import { ClusterInspector } from "../components/ClusterInspector";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -81,6 +82,16 @@ const CATEGORIES = [
 
 const GEO_OPTIONS = ["US", "Global", "Foreign", "State & Local"];
 
+const REGION_GROUPS = ["NA", "EMEA", "APAC", "Global"] as const;
+type RegionGroup = (typeof REGION_GROUPS)[number];
+
+const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
+  NA: "#8B7355",
+  EMEA: "#6B8E8E",
+  APAC: "#8E6B8E",
+  Global: "var(--text-tertiary)",
+};
+
 const TIME_RANGES = ["Last 24h", "Last 48h", "Last 7 days", "Last 30 days"];
 
 const MIN_CLUSTER_OPTIONS = [2, 3, 4, 5, 10];
@@ -135,6 +146,35 @@ function formatSkew(val: number): string {
   if (val === 0) return "0";
   const sign = val > 0 ? "+" : "";
   return `${sign}${Math.round(val)}`;
+}
+
+/** Interpolate between two hex colors. t=0 → c1, t=1 → c2 */
+function lerpColor(c1: string, c2: string, t: number): string {
+  const parse = (hex: string) => [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+  const [r1, g1, b1] = parse(c1);
+  const [r2, g2, b2] = parse(c2);
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+/** Political skew color: -1 = red, 0 = charcoal, +1 = blue */
+function polSkewColor(val: number): string {
+  const v = Math.max(-1, Math.min(1, val));
+  if (v < 0) return lerpColor("#C94A4A", "#4A4A4A", v + 1); // -1→red, 0→gray
+  return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
+}
+
+/** Geographic skew color: -1 = green, 0 = charcoal, +1 = blue */
+function geoSkewColor(val: number): string {
+  const v = Math.max(-1, Math.min(1, val));
+  if (v < 0) return lerpColor("#3A9A5C", "#4A4A4A", v + 1); // -1→green, 0→gray
+  return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
 }
 
 function shortName(domain: string): string {
@@ -207,6 +247,8 @@ function FilterIcon() {
 
 export function HeatmapPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeClusterId = searchParams.get("cluster");
 
   // --- Data state ---
   const [rows, setRows] = useState<HeatmapRow[]>([]);
@@ -265,7 +307,6 @@ export function HeatmapPage() {
       const group = biasGroupForScore(score);
       groups[group].push(o);
     }
-    // Sort each group by score
     for (const g of BIAS_GROUPS) {
       groups[g].sort(
         (a, b) => Number(a.adfontesBiasScore) - Number(b.adfontesBiasScore),
@@ -274,28 +315,92 @@ export function HeatmapPage() {
     return groups;
   }, [outlets]);
 
+  // --- Derived: group outlets by region ---
+  const outletsByRegion = useMemo(() => {
+    const groups: Record<RegionGroup, Outlet[]> = { NA: [], EMEA: [], APAC: [], Global: [] };
+    for (const o of outlets) {
+      const region = (o.geoRegion as RegionGroup) || "Global";
+      if (groups[region]) groups[region].push(o);
+      else groups.Global.push(o);
+    }
+    for (const r of REGION_GROUPS) {
+      groups[r].sort((a, b) => a.sourceName.localeCompare(b.sourceName));
+    }
+    return groups;
+  }, [outlets]);
+
+  // --- Derived: build a bias-group lookup for each outlet domain ---
+  const outletBiasMap = useMemo(() => {
+    const m: Record<string, BiasGroup> = {};
+    for (const g of BIAS_GROUPS) {
+      for (const o of outletsByBias[g]) m[o.outletDomain] = g;
+    }
+    return m;
+  }, [outletsByBias]);
+
+  // --- Derived: build a region-group lookup for each outlet domain ---
+  const outletRegionMap = useMemo(() => {
+    const m: Record<string, RegionGroup> = {};
+    for (const r of REGION_GROUPS) {
+      for (const o of outletsByRegion[r]) m[o.outletDomain] = r;
+    }
+    return m;
+  }, [outletsByRegion]);
+
   // --- Derived: ordered list of selected outlet domains for table columns ---
   const visibleOutlets = useMemo(() => {
-    const result: { domain: string; group: BiasGroup }[] = [];
+    if (tableView === "outlets-region") {
+      const result: { domain: string; group: BiasGroup; region: RegionGroup }[] = [];
+      for (const r of REGION_GROUPS) {
+        for (const o of outletsByRegion[r]) {
+          if (selectedOutlets.has(o.outletDomain)) {
+            result.push({ domain: o.outletDomain, group: outletBiasMap[o.outletDomain] || "Center", region: r });
+          }
+        }
+      }
+      return result;
+    }
+    const result: { domain: string; group: BiasGroup; region: RegionGroup }[] = [];
     for (const g of BIAS_GROUPS) {
       for (const o of outletsByBias[g]) {
         if (selectedOutlets.has(o.outletDomain)) {
-          result.push({ domain: o.outletDomain, group: g });
+          result.push({ domain: o.outletDomain, group: g, region: outletRegionMap[o.outletDomain] || "Global" });
         }
       }
     }
     return result;
-  }, [outletsByBias, selectedOutlets]);
+  }, [outletsByBias, outletsByRegion, outletBiasMap, outletRegionMap, selectedOutlets, tableView]);
 
-  // --- Derived: group spans for table header ---
+  // --- Derived: group spans for table header (bias or region grouping) ---
   const groupSpans = useMemo(() => {
-    const spans: { group: BiasGroup; count: number }[] = [];
+    if (tableView === "outlets-region") {
+      const spans: { label: string; count: number; color: string }[] = [];
+      let current: RegionGroup | null = null;
+      let count = 0;
+      for (const o of visibleOutlets) {
+        if (o.region !== current) {
+          if (current !== null && count > 0) {
+            spans.push({ label: current, count, color: REGION_GROUP_COLORS[current] });
+          }
+          current = o.region;
+          count = 1;
+        } else {
+          count++;
+        }
+      }
+      if (current !== null && count > 0) {
+        spans.push({ label: current, count, color: REGION_GROUP_COLORS[current] });
+      }
+      return spans;
+    }
+    // outlets-bias (default) or grouped views
+    const spans: { label: string; count: number; color: string }[] = [];
     let current: BiasGroup | null = null;
     let count = 0;
     for (const o of visibleOutlets) {
       if (o.group !== current) {
         if (current !== null && count > 0) {
-          spans.push({ group: current, count });
+          spans.push({ label: current.toUpperCase(), count, color: BIAS_GROUP_COLORS[current] });
         }
         current = o.group;
         count = 1;
@@ -304,10 +409,36 @@ export function HeatmapPage() {
       }
     }
     if (current !== null && count > 0) {
-      spans.push({ group: current, count });
+      spans.push({ label: current.toUpperCase(), count, color: BIAS_GROUP_COLORS[current] });
     }
     return spans;
-  }, [visibleOutlets]);
+  }, [visibleOutlets, tableView]);
+
+  // --- Derived: columns for "Grouped by Bias" and "Grouped by Region" views ---
+  type GroupedColumn = { key: string; label: string; color: string; domains: string[] };
+  const groupedColumns = useMemo((): GroupedColumn[] | null => {
+    if (tableView === "bias") {
+      return BIAS_GROUPS.map((g) => ({
+        key: g,
+        label: g.toUpperCase(),
+        color: BIAS_GROUP_COLORS[g],
+        domains: outletsByBias[g]
+          .filter((o) => selectedOutlets.has(o.outletDomain))
+          .map((o) => o.outletDomain),
+      })).filter((c) => c.domains.length > 0);
+    }
+    if (tableView === "region") {
+      return REGION_GROUPS.map((r) => ({
+        key: r,
+        label: r,
+        color: REGION_GROUP_COLORS[r],
+        domains: outletsByRegion[r]
+          .filter((o) => selectedOutlets.has(o.outletDomain))
+          .map((o) => o.outletDomain),
+      })).filter((c) => c.domains.length > 0);
+    }
+    return null;
+  }, [tableView, outletsByBias, outletsByRegion, selectedOutlets]);
 
   // --- Compute the active API category ---
   const activeApiCategory = useMemo((): string | undefined => {
@@ -1226,11 +1357,12 @@ export function HeatmapPage() {
             width: "100%",
             minWidth: 1200,
             fontSize: 13,
+            fontFamily: "'Source Serif 4', Georgia, serif",
           }}
         >
-          <thead>
-            {/* Bias group header row */}
-            <tr>
+          <thead style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+            {/* Group header row — only shown for per-outlet views */}
+            {!groupedColumns && (<tr>
               {/* Meta columns: #, Topic, Pol, Geo */}
               <th
                 style={{
@@ -1284,10 +1416,10 @@ export function HeatmapPage() {
               >
                 &nbsp;
               </th>
-              {/* Bias group spans */}
-              {groupSpans.map(({ group, count }) => (
+              {/* Group spans */}
+              {groupSpans.map(({ label, count, color }) => (
                 <th
-                  key={group}
+                  key={label}
                   colSpan={count}
                   style={{
                     padding: "6px 0 2px",
@@ -1298,13 +1430,13 @@ export function HeatmapPage() {
                     borderBottom: "none",
                     textAlign: "center",
                     background: "var(--surface)",
-                    color: BIAS_GROUP_COLORS[group],
+                    color,
                   }}
                 >
-                  {group.toUpperCase()}
+                  {label}
                 </th>
               ))}
-            </tr>
+            </tr>)}
 
             {/* Column header row */}
             <tr>
@@ -1412,38 +1544,58 @@ export function HeatmapPage() {
                   {sortField === "geoSkew" ? (sortDir === "desc" ? "\u25BC" : "\u25B2") : "\u25BC"}
                 </span>
               </th>
-              {/* Per-outlet columns */}
-              {visibleOutlets.map(({ domain }) => (
-                <th
-                  key={domain}
-                  style={{
-                    padding: "6px 0",
-                    fontWeight: 600,
-                    fontSize: 10,
-                    color: "var(--text-secondary)",
-                    borderBottom: "none",
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    writingMode: "vertical-rl",
-                    textOrientation: "mixed",
-                    transform: "rotate(180deg)",
-                    height: 72,
-                    verticalAlign: "middle",
-                    minWidth: 44,
-                    maxWidth: 56,
-                    background: "var(--surface)",
-                  }}
-                >
-                  {shortName(domain)}
-                </th>
-              ))}
+              {/* Data columns — per-outlet or grouped */}
+              {groupedColumns
+                ? groupedColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      style={{
+                        padding: "6px 8px",
+                        fontWeight: 700,
+                        fontSize: 11,
+                        color: col.color,
+                        borderBottom: "none",
+                        textAlign: "center",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        minWidth: 64,
+                        background: "var(--surface)",
+                      }}
+                    >
+                      {col.label}
+                    </th>
+                  ))
+                : visibleOutlets.map(({ domain }) => (
+                    <th
+                      key={domain}
+                      style={{
+                        padding: "6px 0",
+                        fontWeight: 600,
+                        fontSize: 10,
+                        color: "var(--text-secondary)",
+                        borderBottom: "none",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed",
+                        transform: "rotate(180deg)",
+                        height: 72,
+                        verticalAlign: "middle",
+                        minWidth: 44,
+                        maxWidth: 56,
+                        background: "var(--surface)",
+                      }}
+                    >
+                      {shortName(domain)}
+                    </th>
+                  ))}
             </tr>
           </thead>
           <tbody>
             {filteredRows.length === 0 && (
               <tr>
                 <td
-                  colSpan={4 + visibleOutlets.length}
+                  colSpan={4 + (groupedColumns ? groupedColumns.length : visibleOutlets.length)}
                   style={{
                     padding: 32,
                     textAlign: "center",
@@ -1463,7 +1615,7 @@ export function HeatmapPage() {
               return (
                 <tr
                   key={row.topicId}
-                  onClick={() => navigate(`/topic/${row.topicId}`)}
+                  onClick={() => setSearchParams({ cluster: row.topicId })}
                   style={{
                     borderBottom: "1px solid var(--border-light)",
                     cursor: "pointer",
@@ -1537,15 +1689,26 @@ export function HeatmapPage() {
                         marginTop: 1,
                       }}
                     >
-                      <a
-                        href={`/topic/${row.topicId}`}
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ color: "var(--brand)", textDecoration: "none", fontWeight: 500 }}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSearchParams({ cluster: row.topicId });
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          color: "var(--brand)",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                          fontSize: "inherit",
+                          cursor: "pointer",
+                        }}
                         onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
                         onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
                       >
                         see all {Number(row.totalArticles)} articles
-                      </a>
+                      </button>
                       {row.topCategory && (
                         <span style={{ color: "var(--text-tertiary)" }}>
                           &middot; {row.topCategory}
@@ -1562,12 +1725,7 @@ export function HeatmapPage() {
                       background: "var(--surface-white)",
                       textAlign: "left",
                       paddingLeft: 12,
-                      color:
-                        polVal > 0
-                          ? "var(--gap-right)"
-                          : polVal < 0
-                            ? "var(--gap-left)"
-                            : "var(--text-tertiary)",
+                      color: polSkewColor(polVal),
                       fontWeight: 500,
                       fontSize: 12,
                       fontVariantNumeric: "tabular-nums",
@@ -1584,12 +1742,7 @@ export function HeatmapPage() {
                       background: "var(--surface-white)",
                       textAlign: "left",
                       paddingLeft: 12,
-                      color:
-                        geoVal > 0
-                          ? "var(--gap-right)"
-                          : geoVal < 0
-                            ? "var(--gap-left)"
-                            : "var(--text-tertiary)",
+                      color: geoSkewColor(geoVal),
                       fontWeight: 500,
                       fontSize: 12,
                       fontVariantNumeric: "tabular-nums",
@@ -1598,45 +1751,89 @@ export function HeatmapPage() {
                     {formatSkew(geoVal)}
                   </td>
 
-                  {/* Heat cells */}
-                  {visibleOutlets.map(({ domain }) => {
-                    const cell = row.cells[domain];
-                    const count = cell ? Number(cell.articleCount) || 0 : 0;
-                    const piCount = cell ? Number(cell.piCount) || 0 : 0;
-                    const heat = getHeatStyle(count, piCount, isDark);
-                    return (
-                      <td
-                        key={domain}
-                        style={{
-                          background: heat.bg,
-                          color: heat.fg,
-                          textAlign: "center",
-                          padding: "6px 4px",
-                          fontSize: 12,
-                          fontWeight: count >= 9 ? 700 : count > 0 ? 500 : 400,
-                          fontVariantNumeric: "tabular-nums",
-                          minWidth: 44,
-                          borderRadius: 2,
-                          transition: "all 0.1s",
-                          cursor: "pointer",
-                          position: "relative",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (count > 0) {
-                            e.currentTarget.style.outline = "2px solid var(--heat-outline)";
-                            e.currentTarget.style.outlineOffset = "-1px";
-                            e.currentTarget.style.zIndex = "5";
+                  {/* Heat cells — grouped or per-outlet */}
+                  {groupedColumns
+                    ? groupedColumns.map((col) => {
+                        let count = 0;
+                        let piSum = 0;
+                        for (const d of col.domains) {
+                          const cell = row.cells[d];
+                          if (cell) {
+                            count += Number(cell.articleCount) || 0;
+                            piSum += Number(cell.piCount) || 0;
                           }
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.outline = "none";
-                          e.currentTarget.style.zIndex = "";
-                        }}
-                      >
-                        {count > 0 ? count : ""}
-                      </td>
-                    );
-                  })}
+                        }
+                        const heat = getHeatStyle(count, piSum, isDark);
+                        return (
+                          <td
+                            key={col.key}
+                            style={{
+                              background: heat.bg,
+                              color: heat.fg,
+                              textAlign: "center",
+                              padding: "6px 8px",
+                              fontSize: 13,
+                              fontWeight: count >= 9 ? 700 : count > 0 ? 500 : 400,
+                              fontVariantNumeric: "tabular-nums",
+                              minWidth: 64,
+                              borderRadius: 2,
+                              transition: "all 0.1s",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (count > 0) {
+                                e.currentTarget.style.outline = "2px solid var(--heat-outline)";
+                                e.currentTarget.style.outlineOffset = "-1px";
+                                e.currentTarget.style.zIndex = "5";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.outline = "none";
+                              e.currentTarget.style.zIndex = "";
+                            }}
+                          >
+                            {count > 0 ? count : ""}
+                          </td>
+                        );
+                      })
+                    : visibleOutlets.map(({ domain }) => {
+                        const cell = row.cells[domain];
+                        const count = cell ? Number(cell.articleCount) || 0 : 0;
+                        const piCount = cell ? Number(cell.piCount) || 0 : 0;
+                        const heat = getHeatStyle(count, piCount, isDark);
+                        return (
+                          <td
+                            key={domain}
+                            style={{
+                              background: heat.bg,
+                              color: heat.fg,
+                              textAlign: "center",
+                              padding: "6px 4px",
+                              fontSize: 12,
+                              fontWeight: count >= 9 ? 700 : count > 0 ? 500 : 400,
+                              fontVariantNumeric: "tabular-nums",
+                              minWidth: 44,
+                              borderRadius: 2,
+                              transition: "all 0.1s",
+                              cursor: "pointer",
+                              position: "relative",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (count > 0) {
+                                e.currentTarget.style.outline = "2px solid var(--heat-outline)";
+                                e.currentTarget.style.outlineOffset = "-1px";
+                                e.currentTarget.style.zIndex = "5";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.outline = "none";
+                              e.currentTarget.style.zIndex = "";
+                            }}
+                          >
+                            {count > 0 ? count : ""}
+                          </td>
+                        );
+                      })}
                 </tr>
               );
             })}
@@ -1657,6 +1854,15 @@ export function HeatmapPage() {
         media.games &middot; Coverage heatmap &middot; Outlets ordered by Ad Fontes Media bias
         score (left &rarr; right)
       </div>
+
+      {/* ═══ Cluster Inspector overlay ═══ */}
+      {activeClusterId && (
+        <ClusterInspector
+          topicId={activeClusterId}
+          outlets={outlets}
+          onClose={() => setSearchParams({})}
+        />
+      )}
     </div>
   );
 }

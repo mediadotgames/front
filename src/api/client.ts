@@ -89,17 +89,44 @@ export function fetchTopics(opts?: PaginationOpts): Promise<PaginatedResponse<To
   return apiFetch<PaginatedResponse<Topic>>("/api/topics", params);
 }
 
-export function fetchTopic(id: string): Promise<TopicDetail> {
-  return apiFetch<TopicDetail>(`/api/topics/${encodeURIComponent(id)}`);
+export async function fetchTopic(id: string): Promise<TopicDetail> {
+  const raw = await apiFetch<Record<string, unknown>>(`/api/topics/${encodeURIComponent(id)}`);
+  // Map backend field names to frontend type names
+  const remap: Record<string, string> = {
+    outlets: "outletBreakdown",
+    topicLabel: "label",
+    topCategory: "category",
+    clusterSize: "storyCount",
+  };
+  for (const [from, to] of Object.entries(remap)) {
+    if (from in raw && !(to in raw)) {
+      raw[to] = raw[from];
+      delete raw[from];
+    }
+  }
+  return raw as unknown as TopicDetail;
+}
+
+interface TopicArticleOpts extends PaginationOpts {
+  sort?: "newest" | "relevance" | "similarity";
+  outlet?: string;
+  bias?: string;
+  region?: string;
+  piOnly?: boolean;
 }
 
 export function fetchTopicArticles(
   id: string,
-  opts?: PaginationOpts,
+  opts?: TopicArticleOpts,
 ): Promise<PaginatedResponse<Article>> {
   const params: Record<string, string> = {};
   if (opts?.limit != null) params.limit = String(opts.limit);
   if (opts?.offset != null) params.offset = String(opts.offset);
+  if (opts?.sort) params.sort = opts.sort;
+  if (opts?.outlet) params.outlet = opts.outlet;
+  if (opts?.bias) params.bias = opts.bias;
+  if (opts?.region) params.region = opts.region;
+  if (opts?.piOnly) params.pi_only = "true";
   return apiFetch<PaginatedResponse<Article>>(
     `/api/topics/${encodeURIComponent(id)}/articles`,
     params,

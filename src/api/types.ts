@@ -70,6 +70,10 @@ export interface Article {
   outletDomain: string | null;
   compositeBiasLabel: string | null;
   politicalGroup: string | null;
+  image: string | null;
+  similarityToCentroid: number | null;
+  geoGroup: string | null;
+  geoRegion: string | null;
 }
 
 export interface Outlet {
