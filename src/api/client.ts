@@ -7,6 +7,9 @@ import type {
   Outlet,
   Freshness,
   PaginatedResponse,
+  PiqaStory,
+  PiqaAnnotation,
+  PiqaFilterOptions,
 } from "./types.ts";
 
 const BASE_URL =
@@ -139,4 +142,47 @@ export function fetchOutlets(): Promise<{ data: Outlet[] }> {
 
 export function fetchFreshness(): Promise<Freshness> {
   return apiFetch<Freshness>("/api/freshness");
+}
+
+// ---------------------------------------------------------------------------
+// PI QA
+// ---------------------------------------------------------------------------
+
+interface PiqaStoriesOpts {
+  storyIds?: string[];
+  sample?: "random";
+  size?: number;
+  category?: string;
+  source?: string;
+  piLabel?: string;
+  model?: string;
+}
+
+export function fetchPiqaStories(
+  opts?: PiqaStoriesOpts,
+): Promise<{ data: PiqaStory[]; total: number }> {
+  const params: Record<string, string> = {};
+  if (opts?.storyIds?.length) params.storyIds = opts.storyIds.join(",");
+  if (opts?.sample) params.sample = opts.sample;
+  if (opts?.size != null) params.size = String(opts.size);
+  if (opts?.category) params.category = opts.category;
+  if (opts?.source) params.source = opts.source;
+  if (opts?.piLabel) params.piLabel = opts.piLabel;
+  if (opts?.model) params.model = opts.model;
+  return apiFetch<{ data: PiqaStory[]; total: number }>("/api/piqa/stories", params);
+}
+
+export function fetchPiqaFilters(): Promise<PiqaFilterOptions> {
+  return apiFetch<PiqaFilterOptions>("/api/piqa/filters");
+}
+
+export async function savePiqaAnnotation(annotation: PiqaAnnotation): Promise<{ ok: boolean }> {
+  const url = new URL("/api/piqa/annotations", BASE_URL);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(annotation),
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+  return res.json();
 }

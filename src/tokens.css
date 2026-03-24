@@ -43,6 +43,9 @@
   --tooltip-bg: #fff;
   --tooltip-shadow: 0 4px 16px rgba(45,43,40,0.12);
   --focus-ring: rgba(156,106,96,0.15);
+  --success: #3d8c40;
+  --danger: #c0392b;
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
@@ -88,6 +91,9 @@
   --tooltip-bg: #1e2030;
   --tooltip-shadow: 0 4px 12px rgba(0,0,0,0.5);
   --focus-ring: rgba(99,102,241,0.2);
+  --success: #4ade80;
+  --danger: #f87171;
+  color-scheme: dark;
 }
 
 body {

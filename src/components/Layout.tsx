@@ -52,6 +52,19 @@ export function Layout() {
               Heatmap
             </Link>
             <Link
+              to="/piqa"
+              style={{
+                fontSize: 14,
+                fontWeight: isActive("/piqa") ? 600 : 400,
+                color: isActive("/piqa")
+                  ? "var(--text)"
+                  : "var(--text-secondary)",
+                textDecoration: "none",
+              }}
+            >
+              PI QA
+            </Link>
+            <Link
               to="/docs"
               style={{
                 fontSize: 14,
