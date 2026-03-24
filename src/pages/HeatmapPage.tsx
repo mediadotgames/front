@@ -96,7 +96,7 @@ const TIME_RANGES = ["Last 24h", "Last 48h", "Last 7 days", "Last 30 days"];
 
 const MIN_CLUSTER_OPTIONS = [2, 3, 4, 5, 10];
 
-type SortField = "clusterSize" | "polSkew" | "geoSkew";
+type SortField = "clusterSize" | "polSkew" | "geoSkew" | "asymmetryScore";
 type SortDir = "asc" | "desc";
 
 interface QuickFilters {
@@ -1406,7 +1406,19 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(328, 40, true),
+                  ...stickyCol(328, 40),
+                  background: "var(--surface)",
+                  padding: "6px 0 2px",
+                  fontSize: 10,
+                  color: "transparent",
+                  borderBottom: "none",
+                }}
+              >
+                &nbsp;
+              </th>
+              <th
+                style={{
+                  ...stickyCol(368, 40, true),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1518,7 +1530,7 @@ export function HeatmapPage() {
               {/* Geo */}
               <th
                 style={{
-                  ...stickyCol(328, 40, true),
+                  ...stickyCol(328, 40),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1542,6 +1554,36 @@ export function HeatmapPage() {
                   }}
                 >
                   {sortField === "geoSkew" ? (sortDir === "desc" ? "\u25BC" : "\u25B2") : "\u25BC"}
+                </span>
+              </th>
+              {/* Asymmetry Score */}
+              <th
+                style={{
+                  ...stickyCol(368, 40, true),
+                  background: "var(--surface)",
+                  padding: "6px 4px 6px 8px",
+                  fontWeight: 600,
+                  fontSize: 11,
+                  color: "var(--text-secondary)",
+                  borderBottom: "none",
+                  textAlign: "left",
+                  zIndex: 10,
+                  cursor: "pointer",
+                  userSelect: "none",
+                }}
+                onClick={() => toggleSort("asymmetryScore")}
+                title="Confidence-weighted asymmetry score: combines skew magnitude with sample size and cluster importance"
+              >
+                Asym{" "}
+                <span
+                  style={{
+                    fontSize: 9,
+                    marginLeft: 2,
+                    opacity: sortField === "asymmetryScore" ? 1 : 0.4,
+                    color: sortField === "asymmetryScore" ? "var(--brand)" : undefined,
+                  }}
+                >
+                  {sortField === "asymmetryScore" ? (sortDir === "desc" ? "\u25BC" : "\u25B2") : "\u25BC"}
                 </span>
               </th>
               {/* Data columns — per-outlet or grouped */}
@@ -1595,7 +1637,7 @@ export function HeatmapPage() {
             {filteredRows.length === 0 && (
               <tr>
                 <td
-                  colSpan={4 + (groupedColumns ? groupedColumns.length : visibleOutlets.length)}
+                  colSpan={5 + (groupedColumns ? groupedColumns.length : visibleOutlets.length)}
                   style={{
                     padding: 32,
                     textAlign: "center",
@@ -1611,6 +1653,7 @@ export function HeatmapPage() {
             {filteredRows.map((row, idx) => {
               const polVal = Number(row.polSkew) || 0;
               const geoVal = Number(row.geoSkew) || 0;
+              const asymVal = Number(row.asymmetryScore) || 0;
 
               return (
                 <tr
@@ -1738,7 +1781,7 @@ export function HeatmapPage() {
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(328, 40, true),
+                      ...stickyCol(328, 40),
                       background: "var(--surface-white)",
                       textAlign: "left",
                       paddingLeft: 12,
@@ -1749,6 +1792,27 @@ export function HeatmapPage() {
                     }}
                   >
                     {formatSkew(geoVal)}
+                  </td>
+
+                  {/* Asymmetry score */}
+                  <td
+                    data-sticky
+                    style={{
+                      ...stickyCol(368, 40, true),
+                      background: "var(--surface-white)",
+                      textAlign: "left",
+                      paddingLeft: 8,
+                      color: asymVal >= 0.3
+                        ? "var(--gap-right)"
+                        : asymVal >= 0.1
+                          ? "var(--text)"
+                          : "var(--text-tertiary)",
+                      fontWeight: asymVal >= 0.2 ? 600 : 500,
+                      fontSize: 12,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {asymVal > 0 ? asymVal.toFixed(2) : "—"}
                   </td>
 
                   {/* Heat cells — grouped or per-outlet */}
