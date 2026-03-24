@@ -18,6 +18,10 @@ export interface HeatmapRow {
   leftCount: number;
   centerCount: number;
   rightCount: number;
+  isUsRelevant: boolean;
+  isGloballyRelevant: boolean;
+  isForeignRelevant: boolean;
+  isStateLocal: boolean;
   totalArticles: number;
   earliestPublished: string;
   latestPublished: string;
@@ -103,4 +107,71 @@ export interface PaginatedResponse<T> {
     limit: number;
     offset: number;
   };
+}
+
+// ---------------------------------------------------------------------------
+// PI QA types
+// ---------------------------------------------------------------------------
+
+export interface PiqaStory {
+  storyId: string;
+  headline: string;
+  sourceName: string;
+  sourceUri: string;
+  url: string;
+  topCategory: string | null;
+  publishedAt: string | null;
+  topicId: string | null;
+  topicLabel: string | null;
+  clusterSize: number | null;
+  scopeStatus: string | null;
+  bodyText: string | null;
+  llmIsPublicInterest: boolean | null;
+  llmLabel: string | null;
+  llmMetCount: number | null;
+  llmMaterialImpact: boolean | null;
+  llmInstitutionalAction: boolean | null;
+  llmScopeScale: boolean | null;
+  llmNewInformation: boolean | null;
+  llmUsRelevance: boolean | null;
+  llmGlobalRelevance: boolean | null;
+  llmForeignRelevance: boolean | null;
+  llmStateLocalRelevance: boolean | null;
+  llmReasoning: string | null;
+  llmModel: string | null;
+  llmEvaluatedAt: string | null;
+  humanIsPublicInterest: boolean | null;
+  humanLabel: string | null;
+  humanMaterialImpact: boolean | null;
+  humanInstitutionalAction: boolean | null;
+  humanScopeScale: boolean | null;
+  humanNewInformation: boolean | null;
+  humanUsRelevance: boolean | null;
+  humanGlobalRelevance: boolean | null;
+  humanForeignRelevance: boolean | null;
+  humanStateLocalRelevance: boolean | null;
+  humanNotes: string | null;
+  humanLabeledAt: string | null;
+}
+
+export interface PiqaAnnotation {
+  story_id: string;
+  reviewer_id?: string;
+  is_public_interest: boolean | null;
+  label: string | null;
+  material_impact: boolean | null;
+  institutional_action: boolean | null;
+  scope_scale: boolean | null;
+  new_information: boolean | null;
+  us_relevance: boolean | null;
+  global_relevance: boolean | null;
+  foreign_relevance: boolean | null;
+  state_local_relevance: boolean | null;
+  notes: string | null;
+}
+
+export interface PiqaFilterOptions {
+  categories: string[];
+  sources: { uri: string; name: string }[];
+  piLabels: string[];
 }

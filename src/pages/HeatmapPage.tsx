@@ -511,7 +511,17 @@ export function HeatmapPage() {
     }
 
     // TODO: Quick filter "Public interest only" — needs API field
-    // TODO: Quick filter "US focus only" — needs geo relevance data
+
+    // Geo relevance filter — show clusters matching ANY selected geo scope
+    if (selectedGeo.size < GEO_OPTIONS.length) {
+      result = result.filter((r) => {
+        if (selectedGeo.has("US") && r.isUsRelevant) return true;
+        if (selectedGeo.has("Global") && r.isGloballyRelevant) return true;
+        if (selectedGeo.has("Foreign") && r.isForeignRelevant) return true;
+        if (selectedGeo.has("State & Local") && r.isStateLocal) return true;
+        return false;
+      });
+    }
 
     // Sort
     result = [...result].sort((a, b) => {
@@ -521,7 +531,7 @@ export function HeatmapPage() {
     });
 
     return result;
-  }, [rows, searchQuery, minClusterSize, quickFilters, sortField, sortDir]);
+  }, [rows, searchQuery, minClusterSize, quickFilters, selectedGeo, sortField, sortDir]);
 
   // --- Handlers ---
 
