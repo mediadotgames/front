@@ -175,3 +175,26 @@ export interface PiqaFilterOptions {
   sources: { uri: string; name: string }[];
   piLabels: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Auth types
+// ---------------------------------------------------------------------------
+
+export type UserRole = "visitor" | "member" | "investigator" | "moderator" | "admin";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  preferences: Record<string, unknown>;
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: AuthUser;
+}

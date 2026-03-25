@@ -97,6 +97,20 @@ function biasGroupForScore(score: number): BiasGroup {
   return "Right";
 }
 
+function cleanCategoryLabel(raw: string): string {
+  const CATEGORY_MAP: Record<string, string> = {
+    politics: "Politics", business: "Business", sports: "Sports",
+    entertainment: "Entertainment", technology: "Technology", health: "Health",
+    science: "Science", environment: "Environment", general: "General", world: "World",
+  };
+  const lower = raw.toLowerCase();
+  for (const [key, label] of Object.entries(CATEGORY_MAP)) {
+    if (lower === key || lower.includes(`/${key}`) || lower.startsWith(`${key}/`)) return label;
+  }
+  const last = raw.split("/").pop()?.replace(/_/g, " ") ?? raw;
+  return last.charAt(0).toUpperCase() + last.slice(1);
+}
+
 function shortName(domain: string): string {
   return DISPLAY_NAMES[domain] || domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
 }
@@ -569,6 +583,16 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // --- Compute PI counts per outlet from loaded articles ---
+  const piByOutlet = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const a of articles) {
+      const domain = a.outletDomain || "";
+      if (a.isPublicInterest) m[domain] = (m[domain] || 0) + 1;
+    }
+    return m;
+  }, [articles]);
+
   // --- Compute PI% ---
   const piPct = useMemo(() => {
     if (!topic || !topic.outletBreakdown.length) return null;
@@ -643,8 +667,6 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
                 color: "var(--text)",
                 lineHeight: 1.3,
                 margin: 0,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
               }}
             >
               {topic.label}
@@ -673,7 +695,7 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
                     textTransform: "capitalize",
                   }}
                 >
-                  {topic.category}
+                  {cleanCategoryLabel(topic.category)}
                 </span>
               )}
               <span>{topic.totalArticles} articles from {outletCount} sources</span>
@@ -838,7 +860,7 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
                           const ob = outletBreakdownMap[d];
                           if (ob) {
                             count += Number(ob.articleCount) || 0;
-                            piSum += 0; // piCount not on OutletBreakdown, use articleCount as proxy
+                            piSum += piByOutlet[d] || 0;
                           }
                         }
                         const heat = getHeatStyle(count, piSum, isDark);
@@ -876,7 +898,7 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
                     : visibleOutlets.map(({ domain }) => {
                         const ob = outletBreakdownMap[domain];
                         const count = ob ? Number(ob.articleCount) || 0 : 0;
-                        const heat = getHeatStyle(count, 0, isDark);
+                        const heat = getHeatStyle(count, piByOutlet[domain] || 0, isDark);
                         const isActive = filter.outlet === domain;
                         return (
                           <td
