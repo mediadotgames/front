@@ -36,7 +36,51 @@ function camelizeKeys(obj: unknown): unknown {
 }
 
 // ---------------------------------------------------------------------------
-// Generic fetcher
+// Auth token helpers
+// ---------------------------------------------------------------------------
+
+function getAccessToken(): string | null {
+  return localStorage.getItem("mdg_access_token");
+}
+
+function getRefreshToken(): string | null {
+  return localStorage.getItem("mdg_refresh_token");
+}
+
+function storeTokens(access: string, refresh: string) {
+  localStorage.setItem("mdg_access_token", access);
+  localStorage.setItem("mdg_refresh_token", refresh);
+}
+
+function clearTokens() {
+  localStorage.removeItem("mdg_access_token");
+  localStorage.removeItem("mdg_refresh_token");
+}
+
+async function tryRefresh(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) {
+      clearTokens();
+      return false;
+    }
+    const data = await res.json();
+    storeTokens(data.accessToken, data.refreshToken);
+    return true;
+  } catch {
+    clearTokens();
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Generic fetcher (with auth header injection + 401 refresh retry)
 // ---------------------------------------------------------------------------
 
 async function apiFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
@@ -46,7 +90,24 @@ async function apiFetch<T>(path: string, params?: Record<string, string>): Promi
       url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString());
+
+  const headers: Record<string, string> = {};
+  const token = getAccessToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  let res = await fetch(url.toString(), { headers });
+
+  // On 401, attempt token refresh and retry once
+  if (res.status === 401 && getRefreshToken()) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      headers["Authorization"] = `Bearer ${getAccessToken()}`;
+      res = await fetch(url.toString(), { headers });
+    }
+  }
+
   if (!res.ok) {
     throw new Error(`API ${res.status}: ${res.statusText} — ${path}`);
   }

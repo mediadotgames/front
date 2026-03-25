@@ -110,6 +110,25 @@ interface QuickFilters {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Clean raw newsapi category paths (e.g. "news/politics" → "Politics", "dmoz/sports/track_and_field" → "Sports") */
+function cleanCategory(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  // Map known prefixes to clean labels
+  const CATEGORY_MAP: Record<string, string> = {
+    politics: "Politics", business: "Business", sports: "Sports",
+    entertainment: "Entertainment", technology: "Technology", health: "Health",
+    science: "Science", environment: "Environment", general: "General", world: "World",
+  };
+  const lower = raw.toLowerCase();
+  // Check if any known category appears in the path
+  for (const [key, label] of Object.entries(CATEGORY_MAP)) {
+    if (lower === key || lower.includes(`/${key}`) || lower.startsWith(`${key}/`)) return label;
+  }
+  // Fallback: take the last segment and capitalize
+  const last = raw.split("/").pop()?.replace(/_/g, " ") ?? raw;
+  return last.charAt(0).toUpperCase() + last.slice(1);
+}
+
 function biasGroupForScore(score: number): BiasGroup {
   if (score <= -14) return "Left";
   if (score <= -4) return "Lean Left";
@@ -271,6 +290,7 @@ export function HeatmapPage() {
   // --- Outlets picker ---
   const [selectedOutlets, setSelectedOutlets] = useState<Set<string>>(new Set());
   const [outletsDrawerOpen, setOutletsDrawerOpen] = useState(false);
+  const [outletPickerView, setOutletPickerView] = useState<"bias" | "region">("bias");
 
   // --- Advanced filters ---
   const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false);
@@ -279,7 +299,7 @@ export function HeatmapPage() {
     new Set(CATEGORIES),
   );
   const [selectedGeo, setSelectedGeo] = useState<Set<string>>(new Set(GEO_OPTIONS)); // TODO: wire to API when supported
-  const [publicInterestOnly, setPublicInterestOnly] = useState(false); // TODO: wire to API when supported
+  // publicInterestOnly is driven by quickFilters.publicInterestOnly (no separate state)
   const [minClusterSize, setMinClusterSize] = useState(2);
 
   // --- Table view ---
@@ -510,7 +530,46 @@ export function HeatmapPage() {
       );
     }
 
-    // TODO: Quick filter "Public interest only" — needs API field
+    // Quick filter: public interest only — keep clusters where PI% > 50
+    if (quickFilters.publicInterestOnly) {
+      result = result.filter((r) => {
+        const cells = Object.values(r.cells);
+        const totalArticles = cells.reduce((s, c) => s + (Number(c.articleCount) || 0), 0);
+        const totalPI = cells.reduce((s, c) => s + (Number(c.piCount) || 0), 0);
+        return totalArticles > 0 && totalPI / totalArticles > 0.5;
+      });
+    }
+
+    // Quick filter: US focus only
+    if (quickFilters.usFocusOnly) {
+      result = result.filter((r) => r.isUsRelevant);
+    }
+
+    // Categories filter (client-side — exclude rows whose topCategory is unchecked)
+    if (selectedCategories.size < CATEGORIES.length) {
+      result = result.filter((r) => {
+        const cat = r.topCategory?.toLowerCase();
+        if (!cat) return true; // keep rows with no category
+        return [...selectedCategories].some((c) => c.toLowerCase() === cat);
+      });
+    }
+
+    // Time range filter (client-side on latestPublished)
+    if (timeRange !== "Last 30 days") {
+      const hoursMap: Record<string, number> = {
+        "Last 24h": 24,
+        "Last 48h": 48,
+        "Last 7 days": 168,
+      };
+      const maxHours = hoursMap[timeRange];
+      if (maxHours) {
+        const cutoff = Date.now() - maxHours * 3_600_000;
+        result = result.filter((r) => {
+          const latest = new Date(r.latestPublished).getTime();
+          return latest >= cutoff;
+        });
+      }
+    }
 
     // Geo relevance filter — show clusters matching ANY selected geo scope
     if (selectedGeo.size < GEO_OPTIONS.length) {
@@ -531,7 +590,7 @@ export function HeatmapPage() {
     });
 
     return result;
-  }, [rows, searchQuery, minClusterSize, quickFilters, selectedGeo, sortField, sortDir]);
+  }, [rows, searchQuery, minClusterSize, quickFilters, selectedCategories, timeRange, selectedGeo, sortField, sortDir]);
 
   // --- Handlers ---
 
@@ -835,14 +894,15 @@ export function HeatmapPage() {
                   View by:
                 </span>
                 <button
+                  onClick={() => setOutletPickerView("bias")}
                   style={{
                     fontSize: 11,
-                    fontWeight: 600,
+                    fontWeight: outletPickerView === "bias" ? 600 : 500,
                     padding: "3px 10px",
-                    border: "1px solid var(--brand-border)",
+                    border: `1px solid ${outletPickerView === "bias" ? "var(--brand-border)" : "var(--border)"}`,
                     borderRight: "none",
-                    background: "var(--brand-bg)",
-                    color: "var(--brand)",
+                    background: outletPickerView === "bias" ? "var(--brand-bg)" : "var(--tag-bg)",
+                    color: outletPickerView === "bias" ? "var(--brand)" : "var(--text-secondary)",
                     cursor: "pointer",
                     borderRadius: "4px 0 0 4px",
                     lineHeight: 1.3,
@@ -851,18 +911,18 @@ export function HeatmapPage() {
                   Bias
                 </button>
                 <button
+                  onClick={() => setOutletPickerView("region")}
                   style={{
                     fontSize: 11,
-                    fontWeight: 500,
+                    fontWeight: outletPickerView === "region" ? 600 : 500,
                     padding: "3px 10px",
-                    border: "1px solid var(--border)",
-                    background: "var(--tag-bg)",
-                    color: "var(--text-secondary)",
+                    border: `1px solid ${outletPickerView === "region" ? "var(--brand-border)" : "var(--border)"}`,
+                    background: outletPickerView === "region" ? "var(--brand-bg)" : "var(--tag-bg)",
+                    color: outletPickerView === "region" ? "var(--brand)" : "var(--text-secondary)",
                     cursor: "pointer",
                     borderRadius: "0 4px 4px 0",
                     lineHeight: 1.3,
                   }}
-                  // TODO: implement Region grouping view
                 >
                   Region
                 </button>
@@ -870,15 +930,31 @@ export function HeatmapPage() {
             </div>
 
             {/* Outlet groups */}
-            {BIAS_GROUPS.map((group) => {
-              const groupOutlets = outletsByBias[group];
-              if (groupOutlets.length === 0) return null;
+            {(outletPickerView === "bias" ? BIAS_GROUPS : REGION_GROUPS).map((group) => {
+              const groupOutlets = outletPickerView === "bias"
+                ? outletsByBias[group as BiasGroup]
+                : outletsByRegion[group as RegionGroup];
+              if (!groupOutlets || groupOutlets.length === 0) return null;
+              const groupColor = outletPickerView === "bias"
+                ? BIAS_GROUP_COLORS[group as BiasGroup]
+                : REGION_GROUP_COLORS[group as RegionGroup];
               const allSelected = groupOutlets.every((o) =>
                 selectedOutlets.has(o.outletDomain),
               );
               const someSelected =
                 !allSelected &&
                 groupOutlets.some((o) => selectedOutlets.has(o.outletDomain));
+              const toggleGroup = () => {
+                const groupDomains = groupOutlets.map((o) => o.outletDomain);
+                setSelectedOutlets((prev) => {
+                  const next = new Set(prev);
+                  for (const d of groupDomains) {
+                    if (allSelected) next.delete(d);
+                    else next.add(d);
+                  }
+                  return next;
+                });
+              };
 
               return (
                 <div key={group} style={{ marginBottom: 14 }}>
@@ -897,7 +973,7 @@ export function HeatmapPage() {
                       ref={(el) => {
                         if (el) el.indeterminate = someSelected;
                       }}
-                      onChange={() => toggleBiasGroup(group)}
+                      onChange={toggleGroup}
                       style={{
                         accentColor: "var(--brand)",
                         width: 15,
@@ -912,7 +988,7 @@ export function HeatmapPage() {
                         color: "var(--text)",
                         cursor: "pointer",
                       }}
-                      onClick={() => toggleBiasGroup(group)}
+                      onClick={toggleGroup}
                     >
                       {group}
                     </span>
@@ -925,7 +1001,7 @@ export function HeatmapPage() {
                         height: 2,
                         borderRadius: 1,
                         marginLeft: 8,
-                        background: BIAS_GROUP_COLORS[group],
+                        background: groupColor,
                       }}
                     />
                   </div>
@@ -1182,15 +1258,15 @@ export function HeatmapPage() {
                 >
                   <input
                     type="checkbox"
-                    checked={publicInterestOnly}
-                    onChange={(e) => setPublicInterestOnly(e.target.checked)}
+                    checked={quickFilters.publicInterestOnly}
+                    onChange={() => toggleQuickFilter("publicInterestOnly")}
                     style={{ display: "none" }}
                   />
                   <span
                     style={{
                       position: "absolute",
                       inset: 0,
-                      background: publicInterestOnly ? "var(--accent)" : "var(--toggle-track)",
+                      background: quickFilters.publicInterestOnly ? "var(--accent)" : "var(--toggle-track)",
                       borderRadius: 11,
                       transition: "background 0.2s",
                     }}
@@ -1203,7 +1279,7 @@ export function HeatmapPage() {
                       borderRadius: "50%",
                       background: "#fff",
                       top: 2,
-                      left: publicInterestOnly ? 20 : 2,
+                      left: quickFilters.publicInterestOnly ? 20 : 2,
                       transition: "left 0.2s",
                       boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
                     }}
@@ -1234,29 +1310,30 @@ export function HeatmapPage() {
               >
                 Minimum Cluster Size
               </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {MIN_CLUSTER_OPTIONS.map((n) => {
-                  const sel = minClusterSize === n;
-                  return (
-                    <button
-                      key={n}
-                      onClick={() => setMinClusterSize(n)}
-                      style={{
-                        background: sel ? "var(--accent-bg)" : "var(--tag-bg)",
-                        border: `1px solid ${sel ? "var(--accent)" : "var(--tag-border)"}`,
-                        borderRadius: 6,
-                        padding: "5px 14px",
-                        fontSize: 13,
-                        color: sel ? "var(--accent)" : "var(--text-secondary)",
-                        cursor: "pointer",
-                        transition: "all 0.15s",
-                        fontWeight: sel ? 600 : 400,
-                      }}
-                    >
-                      {n}+
-                    </button>
-                  );
-                })}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  value={minClusterSize}
+                  onChange={(e) => setMinClusterSize(Number(e.target.value))}
+                  style={{
+                    flex: 1,
+                    accentColor: "var(--accent)",
+                    cursor: "pointer",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--accent)",
+                    minWidth: 32,
+                    textAlign: "center",
+                  }}
+                >
+                  {minClusterSize}+
+                </span>
               </div>
             </div>
           </div>
@@ -1298,7 +1375,7 @@ export function HeatmapPage() {
           </span>
           {(
             [
-              { key: "forPolitics" as const, label: "For politics" },
+              { key: "forPolitics" as const, label: "Politics only" },
               { key: "publicInterestOnly" as const, label: "Public interest only" },
               { key: "usFocusOnly" as const, label: "US focus only" },
               { key: "exclSports" as const, label: "Excl. sports" },
@@ -1764,7 +1841,7 @@ export function HeatmapPage() {
                       </button>
                       {row.topCategory && (
                         <span style={{ color: "var(--text-tertiary)" }}>
-                          &middot; {row.topCategory}
+                          &middot; {cleanCategory(row.topCategory)}
                         </span>
                       )}
                     </div>
