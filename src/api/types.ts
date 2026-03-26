@@ -14,7 +14,6 @@ export interface HeatmapRow {
   clusterSize: number;
   polSkew: number;
   geoSkew: number;
-  asymmetryScore: number;
   leftCount: number;
   centerCount: number;
   rightCount: number;

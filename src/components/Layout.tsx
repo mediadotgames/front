@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle.tsx";
+import { UserMenu } from "./UserMenu.tsx";
 
 export function Layout() {
   const location = useLocation();
@@ -79,7 +80,10 @@ export function Layout() {
             </Link>
           </nav>
         </div>
-        <ThemeToggle />
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <ThemeToggle />
+          <UserMenu />
+        </div>
       </header>
       <main style={{ padding: 24 }}>
         <Outlet />
