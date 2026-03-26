@@ -217,6 +217,7 @@ interface PiqaStoriesOpts {
   source?: string;
   piLabel?: string;
   model?: string;
+  search?: string;
 }
 
 export function fetchPiqaStories(
@@ -230,6 +231,7 @@ export function fetchPiqaStories(
   if (opts?.source) params.source = opts.source;
   if (opts?.piLabel) params.piLabel = opts.piLabel;
   if (opts?.model) params.model = opts.model;
+  if (opts?.search) params.search = opts.search;
   return apiFetch<{ data: PiqaStory[]; total: number }>("/api/piqa/stories", params);
 }
 

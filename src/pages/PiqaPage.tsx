@@ -112,6 +112,8 @@ export function PiqaPage() {
   const [catFilter, setCatFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [piLabelFilter, setPiLabelFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
 
   // Load filters on mount
   useEffect(() => {
@@ -123,11 +125,12 @@ export function PiqaPage() {
     setLoading(true);
     try {
       const res = await fetchPiqaStories({
-        sample: sampleMode === "random" ? "random" : undefined,
-        size: sampleSize,
+        sample: activeSearch ? undefined : (sampleMode === "random" ? "random" : undefined),
+        size: activeSearch ? undefined : sampleSize,
         category: catFilter || undefined,
         source: sourceFilter || undefined,
         piLabel: piLabelFilter || undefined,
+        search: activeSearch || undefined,
       });
       setStories(res.data);
     } catch (err) {
@@ -135,7 +138,7 @@ export function PiqaPage() {
     } finally {
       setLoading(false);
     }
-  }, [sampleMode, sampleSize, catFilter, sourceFilter, piLabelFilter]);
+  }, [sampleMode, sampleSize, catFilter, sourceFilter, piLabelFilter, activeSearch]);
 
   useEffect(() => {
     loadStories();
@@ -338,6 +341,74 @@ export function PiqaPage() {
         <button onClick={loadStories} disabled={loading} style={{ marginLeft: "auto" }}>
           {loading ? "Loading..." : "Refresh"}
         </button>
+      </div>
+
+      {/* Search bar */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          marginBottom: 12,
+        }}
+      >
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && searchQuery.trim()) {
+              setActiveSearch(searchQuery.trim());
+            }
+          }}
+          placeholder="Search by URL or headline..."
+          style={{
+            flex: 1,
+            padding: "8px 12px",
+            fontSize: 13,
+            border: "1px solid var(--border)",
+            borderRadius: 6,
+            background: "var(--surface-white)",
+            color: "var(--text)",
+            outline: "none",
+          }}
+        />
+        <button
+          onClick={() => {
+            if (searchQuery.trim()) setActiveSearch(searchQuery.trim());
+          }}
+          disabled={!searchQuery.trim() || loading}
+          style={{
+            padding: "8px 16px",
+            fontSize: 13,
+            background: "var(--brand-bg)",
+            color: "var(--brand)",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 6,
+            cursor: searchQuery.trim() ? "pointer" : "default",
+          }}
+        >
+          Search
+        </button>
+        {activeSearch && (
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setActiveSearch("");
+            }}
+            style={{
+              padding: "8px 12px",
+              fontSize: 13,
+              background: "var(--surface)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Filter tabs */}
