@@ -449,13 +449,6 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
     return m;
   }, [outletsByRegion]);
 
-  // --- Outlet domain -> geo_group lookup for filter-by-region on cell click ---
-  const outletGeoMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const o of outlets) m[o.outletDomain] = o.geoGroup || o.geoRegion || "Global";
-    return m;
-  }, [outlets]);
-
   // --- Build ordered outlet list based on table view ---
   // For the ribbon, we only show outlets that have articles in this cluster
   const clusterOutletDomains = useMemo(() => {
