@@ -55,7 +55,6 @@ const DISPLAY_NAMES: Record<string, string> = {
   "scmp.com": "SCMP",
   "theglobeandmail.com": "Globe&Mail",
   "wsj.com": "WSJ",
-  "timesofindia.indiatimes.com": "TOI",
   "jpost.com": "J.Post",
   "telegraph.co.uk": "Telegraph",
   "nypost.com": "NY Post",
