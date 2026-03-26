@@ -21,6 +21,7 @@ export interface HeatmapRow {
   isGloballyRelevant: boolean;
   isForeignRelevant: boolean;
   isStateLocal: boolean;
+  newsToNoiseRatio: number | null;
   totalArticles: number;
   earliestPublished: string;
   latestPublished: string;
