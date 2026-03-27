@@ -83,14 +83,13 @@ const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
   Global: "var(--text-tertiary)",
 };
 
-const TIME_RANGES = ["Last 24h", "Last 48h", "Last 7 days", "Last 30 days"];
+const TIME_RANGES = ["Last 48h", "Last 30 days"];
 
 type SortField = "clusterSize" | "polSkew" | "geoSkew";
 type SortDir = "asc" | "desc";
 
 interface QuickFilters {
   forPolitics: boolean;
-  publicInterestOnly: boolean;
   usFocusOnly: boolean;
   exclSports: boolean;
 }
@@ -270,7 +269,6 @@ export function HeatmapPage() {
   // --- Quick filters ---
   const [quickFilters, setQuickFilters] = useState<QuickFilters>({
     forPolitics: false,
-    publicInterestOnly: false,
     usFocusOnly: false,
     exclSports: false,
   });
@@ -287,7 +285,6 @@ export function HeatmapPage() {
     new Set(CATEGORIES),
   );
   const [selectedGeo, setSelectedGeo] = useState<Set<string>>(new Set(GEO_OPTIONS)); // TODO: wire to API when supported
-  // publicInterestOnly is driven by quickFilters.publicInterestOnly (no separate state)
   const [minClusterSize, setMinClusterSize] = useState(2);
 
   // --- Table view ---
@@ -514,18 +511,8 @@ export function HeatmapPage() {
     // Quick filter: exclude sports
     if (quickFilters.exclSports) {
       result = result.filter(
-        (r) => r.topCategory?.toLowerCase() !== "sports",
+        (r) => r.dominantCategory?.toLowerCase() !== "sports",
       );
-    }
-
-    // Quick filter: public interest only — keep clusters where PI% > 50
-    if (quickFilters.publicInterestOnly) {
-      result = result.filter((r) => {
-        const cells = Object.values(r.cells);
-        const totalArticles = cells.reduce((s, c) => s + (Number(c.articleCount) || 0), 0);
-        const totalPI = cells.reduce((s, c) => s + (Number(c.piCount) || 0), 0);
-        return totalArticles > 0 && totalPI / totalArticles > 0.5;
-      });
     }
 
     // Quick filter: US focus only
@@ -533,10 +520,10 @@ export function HeatmapPage() {
       result = result.filter((r) => r.isUsRelevant);
     }
 
-    // Categories filter (client-side — exclude rows whose topCategory is unchecked)
+    // Categories filter (client-side — exclude rows whose dominantCategory is unchecked)
     if (selectedCategories.size < CATEGORIES.length) {
       result = result.filter((r) => {
-        const cat = r.topCategory?.toLowerCase();
+        const cat = r.dominantCategory?.toLowerCase();
         if (!cat) return true; // keep rows with no category
         return [...selectedCategories].some((c) => c.toLowerCase() === cat);
       });
@@ -545,9 +532,7 @@ export function HeatmapPage() {
     // Time range filter (client-side on latestPublished)
     if (timeRange !== "Last 30 days") {
       const hoursMap: Record<string, number> = {
-        "Last 24h": 24,
         "Last 48h": 48,
-        "Last 7 days": 168,
       };
       const maxHours = hoursMap[timeRange];
       if (maxHours) {
@@ -1203,72 +1188,7 @@ export function HeatmapPage() {
               </div>
             </div>
 
-            {/* PUBLIC INTEREST */}
-            {/* TODO: wire public interest toggle to API when backend supports it */}
-            <div style={{ marginBottom: 18 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                  color: "var(--text-tertiary)",
-                  marginBottom: 10,
-                }}
-              >
-                Public Interest
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <label
-                  style={{
-                    position: "relative",
-                    width: 40,
-                    height: 22,
-                    cursor: "pointer",
-                    display: "inline-block",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={quickFilters.publicInterestOnly}
-                    onChange={() => toggleQuickFilter("publicInterestOnly")}
-                    style={{ display: "none" }}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: quickFilters.publicInterestOnly ? "var(--accent)" : "var(--toggle-track)",
-                      borderRadius: 11,
-                      transition: "background 0.2s",
-                    }}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      width: 18,
-                      height: 18,
-                      borderRadius: "50%",
-                      background: "#fff",
-                      top: 2,
-                      left: quickFilters.publicInterestOnly ? 20 : 2,
-                      transition: "left 0.2s",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                    }}
-                  />
-                </label>
-                <div>
-                  <div style={{ fontSize: 13, color: "var(--text)" }}>
-                    Show public interest stories only
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 1 }}>
-                    Filter out gossip, celebrity news, and low-impact coverage
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* MINIMUM CLUSTER SIZE */}
+            {/* ─── MINIMUM CLUSTER SIZE ─── */}
             <div style={{ marginBottom: 0 }}>
               <div
                 style={{
@@ -1348,7 +1268,6 @@ export function HeatmapPage() {
           {(
             [
               { key: "forPolitics" as const, label: "Politics only" },
-              { key: "publicInterestOnly" as const, label: "Public interest only" },
               { key: "usFocusOnly" as const, label: "US focus only" },
               { key: "exclSports" as const, label: "Excl. sports" },
             ] as const
@@ -1417,8 +1336,21 @@ export function HeatmapPage() {
             minWidth: 1200,
             fontSize: 13,
             fontFamily: "'Source Serif 4', Georgia, serif",
+            ...(groupedColumns ? { tableLayout: "fixed" as const } : {}),
           }}
         >
+          {/* Column widths for fixed-layout grouped views */}
+          {groupedColumns && (
+            <colgroup>
+              <col style={{ width: 28 }} />   {/* # */}
+              <col style={{ width: 260 }} />  {/* Topic */}
+              <col style={{ width: 50 }} />   {/* Bias Skew */}
+              <col style={{ width: 50 }} />   {/* Geo Skew */}
+              {groupedColumns.map((col) => (
+                <col key={col.key} />
+              ))}
+            </colgroup>
+          )}
           <thead style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             {/* Group header row — only shown for per-outlet views */}
             {!groupedColumns && (<tr>
@@ -1618,6 +1550,7 @@ export function HeatmapPage() {
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
                         minWidth: 64,
+                        width: `${(100 - 30) / groupedColumns.length}%`,
                         background: "var(--surface)",
                       }}
                     >
@@ -1768,9 +1701,9 @@ export function HeatmapPage() {
                       >
                         see all {Number(row.totalArticles)} articles
                       </button>
-                      {row.topCategory && (
+                      {row.dominantCategory && (
                         <span style={{ color: "var(--text-tertiary)" }}>
-                          &middot; {cleanCategory(row.topCategory)}
+                          &middot; {cleanCategory(row.dominantCategory)}
                         </span>
                       )}
                     </div>
@@ -1835,6 +1768,7 @@ export function HeatmapPage() {
                               fontWeight: count >= 9 ? 700 : count > 0 ? 500 : 400,
                               fontVariantNumeric: "tabular-nums",
                               minWidth: 64,
+                              width: `${(100 - 30) / groupedColumns.length}%`,
                               borderRadius: 2,
                               transition: "all 0.1s",
                               cursor: "pointer",
