@@ -23,8 +23,8 @@ function lerpColor(c1: string, c2: string, t: number): string {
 
 function polSkewColor(val: number): string {
   const v = Math.max(-1, Math.min(1, val));
-  if (v < 0) return lerpColor("#C94A4A", "#4A4A4A", v + 1);
-  return lerpColor("#4A4A4A", "#4A7EC9", v);
+  if (v < 0) return lerpColor("#4A7EC9", "#4A4A4A", v + 1);  // Blue for left (negative)
+  return lerpColor("#4A4A4A", "#C94A4A", v);                   // Red for right (positive)
 }
 
 function geoSkewColor(val: number): string {
@@ -505,8 +505,8 @@ export function TopicPage() {
         <SkewBar
           label="Geographic Skew"
           value={topic.geoSkew}
-          leftLabel="Domestic"
-          rightLabel="International"
+          leftLabel="International"
+          rightLabel="Domestic"
           colorFn={geoSkewColor}
         />
       </Section>

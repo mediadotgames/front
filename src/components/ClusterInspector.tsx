@@ -725,8 +725,8 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
               <SkewMeter
                 label="Geographic Skew"
                 value={topic.geoSkew}
-                leftLabel="Domestic"
-                rightLabel="International"
+                leftLabel="International"
+                rightLabel="Domestic"
                 colorFn={geoSkewColor}
               />
             </div>
