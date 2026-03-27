@@ -1232,7 +1232,7 @@ export function HeatmapPage() {
                   marginBottom: 10,
                 }}
               >
-                Public Interest
+                Minimum Public Interest Score
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ flex: 1, position: "relative", height: 20, display: "flex", alignItems: "center" }}>
@@ -1290,7 +1290,7 @@ export function HeatmapPage() {
                   marginBottom: 10,
                 }}
               >
-                Minimum Cluster Size
+                Minimum Topic Article Count
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <input
