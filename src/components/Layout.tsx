@@ -30,13 +30,23 @@ export function Layout() {
           <Link
             to="/"
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
               fontSize: 18,
               fontWeight: 700,
-              color: "var(--brand)",
               textDecoration: "none",
             }}
           >
-            media.games
+            <img
+              src="/logo-transparent.png"
+              alt="media.games logo"
+              style={{ height: 29, width: 29 }}
+            />
+            <span>
+              <span style={{ color: "var(--brand)" }}>media</span>
+              <span style={{ color: "var(--text)" }}>.games</span>
+            </span>
           </Link>
           <nav style={{ display: "flex", gap: 16 }}>
             <Link
