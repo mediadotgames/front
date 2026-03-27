@@ -1351,11 +1351,11 @@ export function HeatmapPage() {
           {groupedColumns && (
             <colgroup>
               <col style={{ width: 28 }} />   {/* # */}
-              <col style={{ width: 260 }} />  {/* Topic */}
+              <col />                          {/* Topic — gets remaining space */}
               <col style={{ width: 50 }} />   {/* Bias Skew */}
               <col style={{ width: 50 }} />   {/* Geo Skew */}
               {groupedColumns.map((col) => (
-                <col key={col.key} style={{ width: `${70 / groupedColumns.length}%` }} />
+                <col key={col.key} style={{ width: 80 }} />
               ))}
             </colgroup>
           )}
