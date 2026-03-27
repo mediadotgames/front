@@ -82,7 +82,7 @@ const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
   Global: "var(--text-tertiary)",
 };
 
-const TIME_RANGES = ["Last 48h", "Last 30 days"];
+const TIME_RANGES = ["Last 24h", "Last 48h", "Last 7 days", "Last 30 days"];
 
 type SortField = "clusterSize" | "polSkew" | "geoSkew";
 type SortDir = "asc" | "desc";
@@ -266,7 +266,7 @@ export function HeatmapPage() {
 
   // --- Advanced filters ---
   const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false);
-  const [timeRange, setTimeRange] = useState<string>("Last 7 days"); // TODO: wire to API when supported
+  const [timeRange, setTimeRange] = useState<string>("Last 30 days");
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
     new Set(CATEGORIES),
   );
@@ -518,7 +518,9 @@ export function HeatmapPage() {
     // Time range filter (client-side on latestPublished)
     if (timeRange !== "Last 30 days") {
       const hoursMap: Record<string, number> = {
+        "Last 24h": 24,
         "Last 48h": 48,
+        "Last 7 days": 168,
       };
       const maxHours = hoursMap[timeRange];
       if (maxHours) {
