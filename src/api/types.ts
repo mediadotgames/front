@@ -84,6 +84,9 @@ export interface Article {
 export interface Outlet {
   outletDomain: string;
   sourceName: string;
+  displayName: string | null;
+  fullName: string | null;
+  logoUrl: string | null;
   compositeBiasScore: number;
   compositeBiasLabel: string;
   politicalGroup: string;

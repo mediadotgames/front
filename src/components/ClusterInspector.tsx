@@ -28,43 +28,7 @@ const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
   Global: "var(--text-tertiary)",
 };
 
-const DISPLAY_NAMES: Record<string, string> = {
-  "ms.now": "MSNBC",
-  "theguardian.com": "Guardian",
-  "us.cnn.com": "CNN",
-  "aljazeera.com": "Al Jazeera",
-  "nytimes.com": "NYT",
-  "washingtonpost.com": "WaPo",
-  "latimes.com": "LA Times",
-  "nbcnews.com": "NBC",
-  "cbsnews.com": "CBS",
-  "politico.com": "Politico",
-  "abcnews.com": "ABC",
-  "axios.com": "Axios",
-  "bloomberg.com": "Bloomberg",
-  "yahoo.com": "Yahoo",
-  "cbc.ca": "CBC",
-  "abc.net.au": "ABC AU",
-  "newsweek.com": "Newsweek",
-  "bbc.com": "BBC",
-  "apnews.com": "AP",
-  "asia.nikkei.com": "Nikkei",
-  "reuters.com": "Reuters",
-  "usatoday.com": "USA Today",
-  "thehill.com": "The Hill",
-  "channelnewsasia.com": "CNA",
-  "scmp.com": "SCMP",
-  "theglobeandmail.com": "Globe&Mail",
-  "wsj.com": "WSJ",
-  "jpost.com": "J.Post",
-  "telegraph.co.uk": "Telegraph",
-  "nypost.com": "NY Post",
-  "foxnews.com": "Fox",
-  "washingtonexaminer.com": "Wash.Exam",
-  "nationalreview.com": "Nat.Review",
-  "rt.com": "RT",
-  "dailywire.com": "Daily Wire",
-};
+// Display names come from the outlets metadata table (outlets.display_name).
 
 type TableView = "outlets-bias" | "outlets-region" | "bias" | "region";
 
@@ -112,8 +76,8 @@ function cleanCategoryLabel(raw: string): string {
   return last.charAt(0).toUpperCase() + last.slice(1);
 }
 
-function shortName(domain: string): string {
-  return DISPLAY_NAMES[domain] || domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
+function fallbackName(domain: string): string {
+  return domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
 }
 
 function relativeDate(dateStr: string): string {
@@ -351,6 +315,14 @@ export function ClusterInspector({ topicId, outlets, onClose, initialFilter }: C
   const [loading, setLoading] = useState(true);
   const [articlesLoading, setArticlesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const shortName = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const o of outlets) {
+      map[o.outletDomain] = o.displayName || fallbackName(o.outletDomain);
+    }
+    return (domain: string) => map[domain] || fallbackName(domain);
+  }, [outlets]);
 
   const [tableView, setTableView] = useState<TableView>("outlets-bias");
   const [filter, setFilter] = useState<FilterState>({

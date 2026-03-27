@@ -20,43 +20,8 @@ const BIAS_GROUP_COLORS: Record<BiasGroup, string> = {
 };
 
 /** Map outlet domain -> short display name for column headers */
-const DISPLAY_NAMES: Record<string, string> = {
-  "ms.now": "MSNBC",
-  "theguardian.com": "Guardian",
-  "us.cnn.com": "CNN",
-  "aljazeera.com": "Al Jazeera",
-  "nytimes.com": "NYT",
-  "washingtonpost.com": "WaPo",
-  "latimes.com": "LA Times",
-  "nbcnews.com": "NBC",
-  "cbsnews.com": "CBS",
-  "politico.com": "Politico",
-  "abcnews.com": "ABC",
-  "axios.com": "Axios",
-  "bloomberg.com": "Bloomberg",
-  "yahoo.com": "Yahoo",
-  "cbc.ca": "CBC",
-  "abc.net.au": "ABC AU",
-  "newsweek.com": "Newsweek",
-  "bbc.com": "BBC",
-  "apnews.com": "AP",
-  "asia.nikkei.com": "Nikkei",
-  "reuters.com": "Reuters",
-  "usatoday.com": "USA Today",
-  "thehill.com": "The Hill",
-  "channelnewsasia.com": "CNA",
-  "scmp.com": "SCMP",
-  "theglobeandmail.com": "Globe&Mail",
-  "wsj.com": "WSJ",
-  "jpost.com": "J.Post",
-  "telegraph.co.uk": "Telegraph",
-  "nypost.com": "NY Post",
-  "foxnews.com": "Fox",
-  "washingtonexaminer.com": "Wash.Exam",
-  "nationalreview.com": "Nat.Review",
-  "rt.com": "RT",
-  "dailywire.com": "Daily Wire",
-};
+// Display names come from the outlets metadata table (outlets.display_name).
+// No hardcoded map needed — built dynamically from API response.
 
 const CATEGORIES = [
   "Politics",
@@ -179,8 +144,8 @@ function geoSkewColor(val: number): string {
   return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
 }
 
-function shortName(domain: string): string {
-  return DISPLAY_NAMES[domain] || domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
+function fallbackName(domain: string): string {
+  return domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -302,6 +267,15 @@ export function HeatmapPage() {
     document.documentElement.getAttribute("data-theme") === "dark";
 
   // --- Derived: group outlets by bias ---
+  // --- Display name lookup from outlets metadata ---
+  const shortName = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const o of outlets) {
+      map[o.outletDomain] = o.displayName || fallbackName(o.outletDomain);
+    }
+    return (domain: string) => map[domain] || fallbackName(domain);
+  }, [outlets]);
+
   const outletsByBias = useMemo(() => {
     const groups: Record<BiasGroup, Outlet[]> = {
       Left: [],
