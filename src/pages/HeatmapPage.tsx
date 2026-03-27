@@ -282,6 +282,7 @@ export function HeatmapPage() {
   );
   const [selectedGeo, setSelectedGeo] = useState<Set<string>>(new Set(GEO_OPTIONS)); // TODO: wire to API when supported
   const [minClusterSize, setMinClusterSize] = useState(2);
+  const [minPiPct, setMinPiPct] = useState(0);
 
   // --- Table view ---
   const [tableView, setTableView] = useState<"outlets-bias" | "outlets-region" | "bias" | "region">("outlets-bias");
@@ -504,6 +505,18 @@ export function HeatmapPage() {
       result = result.filter((r) => Number(r.clusterSize) >= minClusterSize);
     }
 
+    // Min PI percentage filter
+    if (minPiPct > 0) {
+      result = result.filter((r) => {
+        let total = 0, piTotal = 0;
+        for (const cell of Object.values(r.cells)) {
+          total += Number(cell.articleCount) || 0;
+          piTotal += Number(cell.piCount) || 0;
+        }
+        return total > 0 && (piTotal / total) * 100 >= minPiPct;
+      });
+    }
+
     // Quick filter: exclude sports & entertainment
     if (quickFilters.exclSportsEnt) {
       result = result.filter(
@@ -564,7 +577,7 @@ export function HeatmapPage() {
     });
 
     return result;
-  }, [rows, searchQuery, minClusterSize, quickFilters, selectedCategories, timeRange, selectedGeo, sortField, sortDir]);
+  }, [rows, searchQuery, minClusterSize, minPiPct, quickFilters, selectedCategories, timeRange, selectedGeo, sortField, sortDir]);
 
   // --- Handlers ---
 
@@ -808,29 +821,6 @@ export function HeatmapPage() {
             Advanced Filters
           </button>
 
-          {/* Heatmap legend */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              marginLeft: "auto",
-              fontSize: 11,
-              color: "var(--text-tertiary)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span style={{ color: "rgb(180,60,50)" }}>Not PI</span>
-            <div
-              style={{
-                width: 60,
-                height: 8,
-                borderRadius: 3,
-                background: "linear-gradient(to right, rgb(180,60,50), rgb(190,160,50), rgb(50,150,70))",
-              }}
-            />
-            <span style={{ color: "rgb(50,150,70)" }}>PI</span>
-          </div>
         </div>
 
         {/* ═══ Outlets Drawer ═══ */}
@@ -1227,6 +1217,64 @@ export function HeatmapPage() {
                     </label>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* ─── PUBLIC INTEREST ─── */}
+            <div style={{ marginBottom: 18 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                  color: "var(--text-tertiary)",
+                  marginBottom: 10,
+                }}
+              >
+                Public Interest
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ flex: 1, position: "relative", height: 20, display: "flex", alignItems: "center" }}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      height: 6,
+                      borderRadius: 3,
+                      background: "linear-gradient(to right, rgb(180,60,50), rgb(190,160,50), rgb(50,150,70))",
+                    }}
+                  />
+                  <input
+                    type="range"
+                    className="pi-slider"
+                    min={0}
+                    max={100}
+                    value={minPiPct}
+                    onChange={(e) => setMinPiPct(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      position: "relative",
+                      cursor: "pointer",
+                      WebkitAppearance: "none",
+                      appearance: "none",
+                      background: "transparent",
+                      margin: 0,
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--accent)",
+                    minWidth: 32,
+                    textAlign: "center",
+                  }}
+                >
+                  {minPiPct}%
+                </span>
               </div>
             </div>
 

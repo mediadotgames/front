@@ -1,1 +1,32 @@
 @import './tokens.css';
+
+/* PI gradient slider — transparent track, styled thumb */
+input[type="range"].pi-slider::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 6px;
+}
+input[type="range"].pi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  border: 2px solid var(--surface-white);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+  margin-top: -5px;
+}
+input[type="range"].pi-slider::-moz-range-track {
+  background: transparent;
+  height: 6px;
+  border: none;
+}
+input[type="range"].pi-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  border: 2px solid var(--surface-white);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
