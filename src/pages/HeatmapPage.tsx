@@ -19,7 +19,6 @@ const BIAS_GROUP_COLORS: Record<BiasGroup, string> = {
   Right: "var(--gap-right)",
 };
 
-/** Map outlet domain -> short display name for column headers */
 // Display names come from the outlets metadata table (outlets.display_name).
 // No hardcoded map needed — built dynamically from API response.
 
@@ -219,7 +218,7 @@ export function HeatmapPage() {
 
   // --- Data state ---
   const [rows, setRows] = useState<HeatmapRow[]>([]);
-  const [summary, setSummary] = useState<HeatmapSummary | null>(null);
+  const [_summary, setSummary] = useState<HeatmapSummary | null>(null);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
