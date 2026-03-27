@@ -90,7 +90,7 @@ type SortDir = "asc" | "desc";
 interface QuickFilters {
   forPolitics: boolean;
   usFocusOnly: boolean;
-  exclSports: boolean;
+  exclSportsEnt: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -256,7 +256,7 @@ export function HeatmapPage() {
   const [quickFilters, setQuickFilters] = useState<QuickFilters>({
     forPolitics: false,
     usFocusOnly: false,
-    exclSports: false,
+    exclSportsEnt: false,
   });
 
   // --- Outlets picker ---
@@ -494,10 +494,13 @@ export function HeatmapPage() {
       result = result.filter((r) => Number(r.clusterSize) >= minClusterSize);
     }
 
-    // Quick filter: exclude sports
-    if (quickFilters.exclSports) {
+    // Quick filter: exclude sports & entertainment
+    if (quickFilters.exclSportsEnt) {
       result = result.filter(
-        (r) => r.dominantCategory?.toLowerCase() !== "sports",
+        (r) => {
+          const cat = r.dominantCategory?.toLowerCase();
+          return cat !== "sports" && cat !== "entertainment";
+        },
       );
     }
 
@@ -565,7 +568,24 @@ export function HeatmapPage() {
   };
 
   const toggleQuickFilter = (key: keyof QuickFilters) => {
-    setQuickFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+    setQuickFilters((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Sync advanced filter checkboxes when "No sports & entertainment" is toggled
+      if (key === "exclSportsEnt") {
+        setSelectedCategories((cats) => {
+          const updated = new Set(cats);
+          if (next.exclSportsEnt) {
+            updated.delete("Sports");
+            updated.delete("Entertainment");
+          } else {
+            updated.add("Sports");
+            updated.add("Entertainment");
+          }
+          return updated;
+        });
+      }
+      return next;
+    });
   };
 
   const toggleOutlet = (domain: string) => {
@@ -1257,7 +1277,7 @@ export function HeatmapPage() {
             [
               { key: "forPolitics" as const, label: "Politics only" },
               { key: "usFocusOnly" as const, label: "US focus only" },
-              { key: "exclSports" as const, label: "Excl. sports" },
+              { key: "exclSportsEnt" as const, label: "No sports & entertainment" },
             ] as const
           ).map(({ key, label }) => {
             const active = quickFilters[key];
