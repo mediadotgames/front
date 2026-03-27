@@ -72,14 +72,23 @@ const CATEGORIES = [
 
 const GEO_OPTIONS = ["US", "Global", "Foreign", "State & Local"];
 
-const REGION_GROUPS = ["NA", "EMEA", "APAC", "Global"] as const;
+const REGION_GROUPS = ["US", "CA", "EMEA", "APAC", "Global"] as const;
 type RegionGroup = (typeof REGION_GROUPS)[number];
 
 const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
-  NA: "#8B7355",
+  US: "#8B7355",
+  CA: "#7B6B45",
   EMEA: "#6B8E8E",
   APAC: "#8E6B8E",
   Global: "var(--text-tertiary)",
+};
+
+const REGION_LONG_LABELS: Record<RegionGroup, string> = {
+  US: "US (United States)",
+  CA: "CA (Canada)",
+  EMEA: "EMEA (Europe, Middle East & Africa)",
+  APAC: "APAC (Asia Pacific)",
+  Global: "Global",
 };
 
 const TIME_RANGES = ["Last 24h", "Last 48h", "Last 7 days", "Last 30 days"];
@@ -156,11 +165,11 @@ function lerpColor(c1: string, c2: string, t: number): string {
   return `rgb(${r},${g},${b})`;
 }
 
-/** Political skew color: -1 = red, 0 = charcoal, +1 = blue */
+/** Political skew color: -1 = blue, 0 = charcoal, +1 = red */
 function polSkewColor(val: number): string {
   const v = Math.max(-1, Math.min(1, val));
-  if (v < 0) return lerpColor("#C94A4A", "#4A4A4A", v + 1); // -1→red, 0→gray
-  return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
+  if (v < 0) return lerpColor("#4A7EC9", "#4A4A4A", v + 1); // -1→blue, 0→charcoal
+  return lerpColor("#4A4A4A", "#C94A4A", v);                  // 0→charcoal, +1→red
 }
 
 /** Geographic skew color: -1 = green, 0 = charcoal, +1 = blue */
@@ -241,6 +250,7 @@ function FilterIcon() {
 export function HeatmapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeClusterId = searchParams.get("cluster");
+  const [inspectorFilter, setInspectorFilter] = useState<{ outlet?: string; bias?: string; region?: string } | undefined>(undefined);
 
   // --- Data state ---
   const [rows, setRows] = useState<HeatmapRow[]>([]);
@@ -308,7 +318,7 @@ export function HeatmapPage() {
 
   // --- Derived: group outlets by region ---
   const outletsByRegion = useMemo(() => {
-    const groups: Record<RegionGroup, Outlet[]> = { NA: [], EMEA: [], APAC: [], Global: [] };
+    const groups: Record<RegionGroup, Outlet[]> = { US: [], CA: [], EMEA: [], APAC: [], Global: [] };
     for (const o of outlets) {
       const region = (o.geoRegion as RegionGroup) || "Global";
       if (groups[region]) groups[region].push(o);
@@ -647,7 +657,7 @@ export function HeatmapPage() {
     );
   }
 
-  const totalCount = summary?.totalTopics ?? rows.length;
+  const totalCount = rows.length;
   const filteredCount = filteredRows.length;
   const anyDrawerOpen = outletsDrawerOpen || filtersDrawerOpen;
 
@@ -797,6 +807,30 @@ export function HeatmapPage() {
             <FilterIcon />
             Advanced Filters
           </button>
+
+          {/* Heatmap legend */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              marginLeft: "auto",
+              fontSize: 11,
+              color: "var(--text-tertiary)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span style={{ color: "rgb(180,60,50)" }}>Not PI</span>
+            <div
+              style={{
+                width: 60,
+                height: 8,
+                borderRadius: 3,
+                background: "linear-gradient(to right, rgb(180,60,50), rgb(190,160,50), rgb(50,150,70))",
+              }}
+            />
+            <span style={{ color: "rgb(50,150,70)" }}>PI</span>
+          </div>
         </div>
 
         {/* ═══ Outlets Drawer ═══ */}
@@ -955,7 +989,7 @@ export function HeatmapPage() {
                       }}
                       onClick={toggleGroup}
                     >
-                      {group}
+                      {outletPickerView === "region" ? REGION_LONG_LABELS[group as RegionGroup] : group}
                     </span>
                     <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
                       ({groupOutlets.length})
@@ -1473,7 +1507,7 @@ export function HeatmapPage() {
                 }}
                 onClick={() => toggleSort("clusterSize")}
               >
-                Cluster{" "}
+                Topic{" "}
                 <span
                   style={{
                     fontSize: 9,
@@ -1615,7 +1649,7 @@ export function HeatmapPage() {
               return (
                 <tr
                   key={row.topicId}
-                  onClick={() => setSearchParams({ cluster: row.topicId })}
+                  onClick={() => { setInspectorFilter(undefined); setSearchParams({ cluster: row.topicId }); }}
                   style={{
                     borderBottom: "1px solid var(--border-light)",
                     cursor: "pointer",
@@ -1662,36 +1696,28 @@ export function HeatmapPage() {
                       background: "var(--surface-white)",
                       textAlign: "left",
                       padding: "6px 4px 6px 12px",
-                      maxWidth: 360,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
                       color: "var(--text)",
                       fontWeight: 500,
+                      whiteSpace: "normal",
+                      wordWrap: "break-word",
                     }}
                   >
-                    <div
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    <span>
                       {row.topicLabel}
-                    </div>
-                    <div
+                    </span>
+                    <span
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
                         fontSize: 11,
                         color: "var(--text-tertiary)",
-                        marginTop: 1,
+                        fontWeight: 400,
+                        marginLeft: 6,
+                        whiteSpace: "nowrap",
                       }}
                     >
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          setInspectorFilter(undefined);
                           setSearchParams({ cluster: row.topicId });
                         }}
                         style={{
@@ -1714,7 +1740,7 @@ export function HeatmapPage() {
                           &middot; {cleanCategory(row.dominantCategory)}
                         </span>
                       )}
-                    </div>
+                    </span>
                   </td>
 
                   {/* Pol skew */}
@@ -1781,6 +1807,14 @@ export function HeatmapPage() {
                               transition: "all 0.1s",
                               cursor: "pointer",
                             }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (count > 0) {
+                                const filterKey = tableView === "bias" ? "bias" : "region";
+                                setInspectorFilter({ [filterKey]: col.key });
+                                setSearchParams({ cluster: row.topicId });
+                              }
+                            }}
                             onMouseEnter={(e) => {
                               if (count > 0) {
                                 e.currentTarget.style.outline = "2px solid var(--heat-outline)";
@@ -1818,6 +1852,13 @@ export function HeatmapPage() {
                               transition: "all 0.1s",
                               cursor: "pointer",
                               position: "relative",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (count > 0) {
+                                setInspectorFilter({ outlet: domain });
+                                setSearchParams({ cluster: row.topicId });
+                              }
                             }}
                             onMouseEnter={(e) => {
                               if (count > 0) {
@@ -1861,7 +1902,8 @@ export function HeatmapPage() {
         <ClusterInspector
           topicId={activeClusterId}
           outlets={outlets}
-          onClose={() => setSearchParams({})}
+          onClose={() => { setSearchParams({}); setInspectorFilter(undefined); }}
+          initialFilter={inspectorFilter}
         />
       )}
     </div>

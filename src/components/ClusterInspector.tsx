@@ -17,11 +17,12 @@ const BIAS_GROUP_COLORS: Record<BiasGroup, string> = {
   Right: "var(--gap-right)",
 };
 
-const REGION_GROUPS = ["NA", "EMEA", "APAC", "Global"] as const;
+const REGION_GROUPS = ["US", "CA", "EMEA", "APAC", "Global"] as const;
 type RegionGroup = (typeof REGION_GROUPS)[number];
 
 const REGION_GROUP_COLORS: Record<RegionGroup, string> = {
-  NA: "#8B7355",
+  US: "#8B7355",
+  CA: "#7B6B45",
   EMEA: "#6B8E8E",
   APAC: "#8E6B8E",
   Global: "var(--text-tertiary)",
@@ -82,6 +83,7 @@ interface ClusterInspectorProps {
   topicId: string;
   outlets: Outlet[];
   onClose: () => void;
+  initialFilter?: { outlet?: string; bias?: string; region?: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -233,8 +235,8 @@ function lerpColor(c1: string, c2: string, t: number): string {
 
 function polSkewColor(val: number): string {
   const v = Math.max(-1, Math.min(1, val));
-  if (v < 0) return lerpColor("#C94A4A", "#4A4A4A", v + 1);
-  return lerpColor("#4A4A4A", "#4A7EC9", v);
+  if (v < 0) return lerpColor("#4A7EC9", "#4A4A4A", v + 1); // -1→blue, 0→charcoal
+  return lerpColor("#4A4A4A", "#C94A4A", v);                  // 0→charcoal, +1→red
 }
 
 function geoSkewColor(val: number): string {
@@ -342,7 +344,7 @@ function SkewMeter({
 // Main component
 // ---------------------------------------------------------------------------
 
-export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspectorProps) {
+export function ClusterInspector({ topicId, outlets, onClose, initialFilter }: ClusterInspectorProps) {
   const [topic, setTopic] = useState<TopicDetail | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [articleTotal, setArticleTotal] = useState(0);
@@ -352,9 +354,9 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
 
   const [tableView, setTableView] = useState<TableView>("outlets-bias");
   const [filter, setFilter] = useState<FilterState>({
-    outlet: null,
-    bias: null,
-    region: null,
+    outlet: initialFilter?.outlet ?? null,
+    bias: initialFilter?.bias ?? null,
+    region: initialFilter?.region ?? null,
     piOnly: false,
   });
 
@@ -427,7 +429,7 @@ export function ClusterInspector({ topicId, outlets, onClose }: ClusterInspector
   }, [outlets]);
 
   const outletsByRegion = useMemo(() => {
-    const groups: Record<RegionGroup, Outlet[]> = { NA: [], EMEA: [], APAC: [], Global: [] };
+    const groups: Record<RegionGroup, Outlet[]> = { US: [], CA: [], EMEA: [], APAC: [], Global: [] };
     for (const o of outlets) {
       const region = (o.geoRegion as RegionGroup) || "Global";
       if (groups[region]) groups[region].push(o);
