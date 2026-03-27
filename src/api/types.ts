@@ -10,7 +10,7 @@ export interface HeatmapCell {
 export interface HeatmapRow {
   topicId: string;
   topicLabel: string;
-  topCategory: string | null;
+  dominantCategory: string | null;
   clusterSize: number;
   polSkew: number;
   geoSkew: number;

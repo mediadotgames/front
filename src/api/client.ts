@@ -159,7 +159,7 @@ export async function fetchTopic(id: string): Promise<TopicDetail> {
   const remap: Record<string, string> = {
     outlets: "outletBreakdown",
     topicLabel: "label",
-    topCategory: "category",
+    dominantCategory: "category",
     clusterSize: "storyCount",
   };
   for (const [from, to] of Object.entries(remap)) {

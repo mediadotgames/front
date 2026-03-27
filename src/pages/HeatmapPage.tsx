@@ -61,7 +61,6 @@ const DISPLAY_NAMES: Record<string, string> = {
 const CATEGORIES = [
   "Politics",
   "Business",
-  "World",
   "Technology",
   "Health",
   "Science",
@@ -98,23 +97,10 @@ interface QuickFilters {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Clean raw newsapi category paths (e.g. "news/politics" → "Politics", "dmoz/sports/track_and_field" → "Sports") */
+/** Capitalize a clean category value (e.g. "politics" → "Politics") */
 function cleanCategory(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  // Map known prefixes to clean labels
-  const CATEGORY_MAP: Record<string, string> = {
-    politics: "Politics", business: "Business", sports: "Sports",
-    entertainment: "Entertainment", technology: "Technology", health: "Health",
-    science: "Science", environment: "Environment", general: "General", world: "World",
-  };
-  const lower = raw.toLowerCase();
-  // Check if any known category appears in the path
-  for (const [key, label] of Object.entries(CATEGORY_MAP)) {
-    if (lower === key || lower.includes(`/${key}`) || lower.startsWith(`${key}/`)) return label;
-  }
-  // Fallback: take the last segment and capitalize
-  const last = raw.split("/").pop()?.replace(/_/g, " ") ?? raw;
-  return last.charAt(0).toUpperCase() + last.slice(1);
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 function biasGroupForScore(score: number): BiasGroup {
@@ -1347,7 +1333,7 @@ export function HeatmapPage() {
               <col style={{ width: 50 }} />   {/* Bias Skew */}
               <col style={{ width: 50 }} />   {/* Geo Skew */}
               {groupedColumns.map((col) => (
-                <col key={col.key} />
+                <col key={col.key} style={{ width: `${70 / groupedColumns.length}%` }} />
               ))}
             </colgroup>
           )}
