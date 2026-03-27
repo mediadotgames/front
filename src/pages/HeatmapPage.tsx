@@ -261,6 +261,12 @@ export function HeatmapPage() {
 
   // --- Search ---
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  // --- Pagination ---
+  const PAGE_SIZE = 200;
+  const [page, setPage] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
 
   // --- Quick filters ---
   const [quickFilters, setQuickFilters] = useState<QuickFilters>({
@@ -452,16 +458,29 @@ export function HeatmapPage() {
     return undefined;
   }, [quickFilters.forPolitics, selectedCategories]);
 
+  // --- Debounce search query ---
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setPage(0); // reset to first page on new search
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(0); }, [activeApiCategory, minClusterSize]);
+
   // --- Load data ---
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const opts: Parameters<typeof fetchHeatmap>[0] = {};
+      const opts: Parameters<typeof fetchHeatmap>[0] = {
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      };
       if (activeApiCategory) opts.category = activeApiCategory;
-      if (minClusterSize > 1) opts.limit = 1000; // fetch more to compensate for client filtering
-      // TODO: send minStories param when API supports it as a query param
-      // For now we filter client-side
+      if (debouncedQuery.trim()) opts.q = debouncedQuery.trim();
 
       const [heatmap, sum, outletsResp] = await Promise.all([
         fetchHeatmap(opts),
@@ -469,6 +488,7 @@ export function HeatmapPage() {
         fetchOutlets(),
       ]);
       setRows(heatmap.data);
+      setTotalRows(heatmap.meta.total);
       setSummary(sum);
       const outletList = outletsResp.data;
       setOutlets(outletList);
@@ -484,7 +504,7 @@ export function HeatmapPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeApiCategory, minClusterSize]);
+  }, [activeApiCategory, debouncedQuery, page]);
 
   useEffect(() => {
     load();
@@ -494,11 +514,7 @@ export function HeatmapPage() {
   const filteredRows = useMemo(() => {
     let result = rows;
 
-    // Search filter (client-side)
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      result = result.filter((r) => r.topicLabel.toLowerCase().includes(q));
-    }
+    // Search is now server-side via API `q` param
 
     // Min cluster size filter
     if (minClusterSize > 1) {
@@ -577,7 +593,7 @@ export function HeatmapPage() {
     });
 
     return result;
-  }, [rows, searchQuery, minClusterSize, minPiPct, quickFilters, selectedCategories, timeRange, selectedGeo, sortField, sortDir]);
+  }, [rows, minClusterSize, minPiPct, quickFilters, selectedCategories, timeRange, selectedGeo, sortField, sortDir]);
 
   // --- Handlers ---
 
@@ -670,8 +686,9 @@ export function HeatmapPage() {
     );
   }
 
-  const totalCount = rows.length;
+  const totalCount = totalRows;
   const filteredCount = filteredRows.length;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const anyDrawerOpen = outletsDrawerOpen || filtersDrawerOpen;
 
   return (
@@ -1930,6 +1947,72 @@ export function HeatmapPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ═══ Pagination ═══ */}
+      {totalPages > 1 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 4,
+            padding: "16px 32px",
+            borderTop: "1px solid var(--border-light)",
+          }}
+        >
+          {page > 0 && (
+            <button
+              onClick={() => { setPage(page - 1); window.scrollTo(0, 0); }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--brand)",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                padding: "6px 10px",
+              }}
+            >
+              &lsaquo; Prev
+            </button>
+          )}
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => { setPage(i); window.scrollTo(0, 0); }}
+              style={{
+                background: i === page ? "var(--brand)" : "none",
+                color: i === page ? "#fff" : "var(--brand)",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: i === page ? 700 : 400,
+                cursor: "pointer",
+                padding: "6px 10px",
+                minWidth: 32,
+              }}
+            >
+              {i + 1}
+            </button>
+          ))}
+          {page < totalPages - 1 && (
+            <button
+              onClick={() => { setPage(page + 1); window.scrollTo(0, 0); }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--brand)",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                padding: "6px 10px",
+              }}
+            >
+              Next &rsaquo;
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <div
