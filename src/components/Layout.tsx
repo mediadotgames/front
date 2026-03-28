@@ -41,7 +41,7 @@ export function Layout() {
             <img
               src="/logo-transparent.png"
               alt="media.games logo"
-              style={{ height: 33, width: 33 }}
+              style={{ height: 40, width: 40 }}
             />
             <span>
               <span style={{ color: "var(--brand)" }}>media</span>
