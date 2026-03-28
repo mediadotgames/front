@@ -432,8 +432,33 @@ export function HeatmapPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // --- Derived: API-level time range param ---
+  const apiTimeRange = useMemo((): string | undefined => {
+    const map: Record<string, string> = {
+      "Last 24h": "24h",
+      "Last 48h": "48h",
+      "Last 7 days": "7d",
+      "Last 30 days": "30d",
+    };
+    return map[timeRange];
+  }, [timeRange]);
+
+  // --- Derived: API-level geo param ---
+  const apiGeo = useMemo((): string[] | undefined => {
+    if (selectedGeo.size >= GEO_OPTIONS.length && !quickFilters.usFocusOnly) return undefined;
+    if (quickFilters.usFocusOnly) return ["us"];
+    const geoMap: Record<string, string> = {
+      US: "us",
+      Global: "global",
+      Foreign: "foreign",
+      "State & Local": "state_local",
+    };
+    const result = [...selectedGeo].map((g) => geoMap[g]).filter(Boolean);
+    return result.length > 0 ? result : undefined;
+  }, [selectedGeo, quickFilters.usFocusOnly]);
+
   // Reset page when filters change
-  useEffect(() => { setPage(0); }, [activeApiCategory, minClusterSize]);
+  useEffect(() => { setPage(0); }, [activeApiCategory, minClusterSize, apiTimeRange, apiGeo, quickFilters.exclSportsEnt, sortField, sortDir]);
 
   // --- Load data ---
   const load = useCallback(async () => {
@@ -446,6 +471,11 @@ export function HeatmapPage() {
       };
       if (activeApiCategory) opts.category = activeApiCategory;
       if (debouncedQuery.trim()) opts.q = debouncedQuery.trim();
+      if (apiTimeRange) opts.timeRange = apiTimeRange;
+      if (apiGeo) opts.geo = apiGeo;
+      if (quickFilters.exclSportsEnt) opts.exclSportsEnt = true;
+      opts.sort = sortField;
+      opts.sortDir = sortDir;
 
       const [heatmap, sum, outletsResp] = await Promise.all([
         fetchHeatmap(opts),
@@ -469,7 +499,7 @@ export function HeatmapPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeApiCategory, debouncedQuery, page]);
+  }, [activeApiCategory, debouncedQuery, page, apiTimeRange, apiGeo, quickFilters.exclSportsEnt, sortField, sortDir]);
 
   useEffect(() => {
     load();
