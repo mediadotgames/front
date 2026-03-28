@@ -143,6 +143,33 @@ function geoSkewColor(val: number): string {
   return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
 }
 
+/** Diverging bar: center = 0, positive grows right, negative grows left */
+function SkewBar({ value, colorPos, colorNeg }: { value: number; colorPos: string; colorNeg: string }) {
+  const v = Math.max(-1, Math.min(1, value));
+  const pct = Math.abs(v) * 50; // 0-50% of container width
+  return (
+    <div style={{ position: "relative", width: "100%", height: 12, borderRadius: 2, background: "#f0efed" }}>
+      {/* center line */}
+      <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "#ccc" }} />
+      {/* bar */}
+      {v !== 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 1,
+            bottom: 1,
+            borderRadius: 1,
+            background: v > 0 ? colorPos : colorNeg,
+            ...(v > 0
+              ? { left: "50%", width: `${pct}%` }
+              : { right: "50%", width: `${pct}%` }),
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 function fallbackName(domain: string): string {
   return domain.replace(/\.(com|org|net|co\.uk|net\.au)$/, "");
 }
@@ -1465,7 +1492,7 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(288, 40),
+                  ...stickyCol(288, 60),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1477,7 +1504,7 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(328, 40, true),
+                  ...stickyCol(348, 60, true),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1560,7 +1587,7 @@ export function HeatmapPage() {
               {/* Pol */}
               <th
                 style={{
-                  ...stickyCol(288, 40),
+                  ...stickyCol(288, 60),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1589,7 +1616,7 @@ export function HeatmapPage() {
               {/* Geo */}
               <th
                 style={{
-                  ...stickyCol(328, 40, true),
+                  ...stickyCol(348, 60, true),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1785,34 +1812,26 @@ export function HeatmapPage() {
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(288, 40),
+                      ...stickyCol(288, 60),
                       background: "var(--surface-white)",
-                      textAlign: "left",
-                      paddingLeft: 12,
-                      color: polSkewColor(polVal),
-                      fontWeight: 500,
-                      fontSize: 12,
-                      fontVariantNumeric: "tabular-nums",
+                      padding: "4px 6px",
+                      verticalAlign: "middle",
                     }}
                   >
-                    {formatSkew(polVal)}
+                    <SkewBar value={polVal} colorPos="#C94A4A" colorNeg="#4A7EC9" />
                   </td>
 
                   {/* Geo skew */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(328, 40, true),
+                      ...stickyCol(348, 60, true),
                       background: "var(--surface-white)",
-                      textAlign: "left",
-                      paddingLeft: 12,
-                      color: geoSkewColor(geoVal),
-                      fontWeight: 500,
-                      fontSize: 12,
-                      fontVariantNumeric: "tabular-nums",
+                      padding: "4px 6px",
+                      verticalAlign: "middle",
                     }}
                   >
-                    {formatSkew(geoVal)}
+                    <SkewBar value={geoVal} colorPos="#4A7EC9" colorNeg="#3A9A5C" />
                   </td>
 
                   {/* Heat cells — grouped or per-outlet */}
