@@ -32,7 +32,7 @@ export function Layout() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 11,
               fontSize: 18,
               fontWeight: 700,
               textDecoration: "none",
