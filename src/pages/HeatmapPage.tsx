@@ -1426,10 +1426,23 @@ export function HeatmapPage() {
           <thead style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             {/* Group header row — only shown for per-outlet views */}
             {!groupedColumns && (<tr>
-              {/* Meta columns: Topic, Pol, Geo */}
+              {/* Meta columns: #, Topic, Pol, Geo */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(0, 28),
+                  background: "var(--surface)",
+                  padding: "6px 0 2px",
+                  fontSize: 10,
+                  color: "transparent",
+                  borderBottom: "none",
+                  textAlign: "center",
+                }}
+              >
+                &nbsp;
+              </th>
+              <th
+                style={{
+                  ...stickyCol(28, 260),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1487,10 +1500,27 @@ export function HeatmapPage() {
 
             {/* Column header row */}
             <tr>
+              {/* # */}
+              <th
+                style={{
+                  ...stickyCol(0, 28),
+                  background: "var(--surface)",
+                  padding: "6px 4px",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  color: "var(--text-secondary)",
+                  borderBottom: "none",
+                  textAlign: "right",
+                  paddingRight: 6,
+                  zIndex: 10,
+                }}
+              >
+                #
+              </th>
               {/* Topic */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(28, 260),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1639,7 +1669,7 @@ export function HeatmapPage() {
                 </td>
               </tr>
             )}
-            {filteredRows.map((row) => {
+            {filteredRows.map((row, idx) => {
               const polVal = Number(row.polSkew) || 0;
               const geoVal = Number(row.geoSkew) || 0;
 
@@ -1668,42 +1698,40 @@ export function HeatmapPage() {
                     });
                   }}
                 >
-                  {/* Topic (thumbnail + label) */}
+                  {/* Row number */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(0, 288),
+                      ...stickyCol(0, 28),
+                      background: "var(--surface-white)",
+                      color: "var(--text-tertiary)",
+                      fontSize: 11,
+                      textAlign: "right",
+                      paddingRight: 6,
+                      padding: "6px 6px 6px 4px",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {idx + 1}
+                  </td>
+
+                  {/* Topic */}
+                  <td
+                    data-sticky
+                    style={{
+                      ...stickyCol(28, 260),
                       background: "var(--surface-white)",
                       textAlign: "left",
-                      padding: "6px 4px 6px 8px",
+                      padding: "6px 4px 6px 12px",
                       color: "var(--text)",
                       fontWeight: 500,
                       whiteSpace: "normal",
                       wordWrap: "break-word",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                      {row.medoidImage ? (
-                        <img
-                          src={row.medoidImage}
-                          alt=""
-                          loading="lazy"
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 4,
-                            objectFit: "cover",
-                            flexShrink: 0,
-                          }}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      ) : (
-                        <div style={{ width: 40, height: 40, borderRadius: 4, background: "var(--surface)", flexShrink: 0 }} />
-                      )}
-                      <div style={{ minWidth: 0 }}>
-                        <span style={{ fontSize: 15 }}>
-                          {row.topicLabel}
-                        </span>
+                    <span style={{ fontSize: 15 }}>
+                      {row.topicLabel}
+                    </span>
                     <span
                       style={{
                         display: "block",
@@ -1741,8 +1769,6 @@ export function HeatmapPage() {
                         </span>
                       )}
                     </span>
-                      </div>
-                    </div>
                   </td>
 
                   {/* Pol skew */}
