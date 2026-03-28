@@ -12,8 +12,7 @@ import type {
   PiqaFilterOptions,
 } from "./types.ts";
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { API_BASE_URL as BASE_URL } from "./config.ts";
 
 // ---------------------------------------------------------------------------
 // snake_case → camelCase helper

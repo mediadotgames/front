@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { API_BASE_URL as API_BASE } from "../api/config.ts";
 const DEBOUNCE_MS = 300;
 
 export interface ClusterResult {

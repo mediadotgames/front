@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { API_BASE_URL as API_BASE } from "../api/config.ts";
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export interface TrendChip {

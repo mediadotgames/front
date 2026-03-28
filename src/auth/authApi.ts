@@ -1,6 +1,6 @@
 import type { AuthTokens, AuthUser } from "../api/types.ts";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { API_BASE_URL as BASE_URL } from "../api/config.ts";
 
 async function authFetch<T>(
   path: string,
