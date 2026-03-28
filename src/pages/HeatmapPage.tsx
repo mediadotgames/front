@@ -108,41 +108,6 @@ function getHeatStyle(count: number, piCount: number, isDark: boolean): { bg: st
   return { bg, fg };
 }
 
-function formatSkew(val: number): string {
-  if (val === 0) return "0.00";
-  const sign = val > 0 ? "+" : "";
-  return `${sign}${val.toFixed(2)}`;
-}
-
-/** Interpolate between two hex colors. t=0 → c1, t=1 → c2 */
-function lerpColor(c1: string, c2: string, t: number): string {
-  const parse = (hex: string) => [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16),
-  ];
-  const [r1, g1, b1] = parse(c1);
-  const [r2, g2, b2] = parse(c2);
-  const r = Math.round(r1 + (r2 - r1) * t);
-  const g = Math.round(g1 + (g2 - g1) * t);
-  const b = Math.round(b1 + (b2 - b1) * t);
-  return `rgb(${r},${g},${b})`;
-}
-
-/** Political skew color: -1 = blue, 0 = charcoal, +1 = red */
-function polSkewColor(val: number): string {
-  const v = Math.max(-1, Math.min(1, val));
-  if (v < 0) return lerpColor("#4A7EC9", "#4A4A4A", v + 1); // -1→blue, 0→charcoal
-  return lerpColor("#4A4A4A", "#C94A4A", v);                  // 0→charcoal, +1→red
-}
-
-/** Geographic skew color: -1 = green, 0 = charcoal, +1 = blue */
-function geoSkewColor(val: number): string {
-  const v = Math.max(-1, Math.min(1, val));
-  if (v < 0) return lerpColor("#3A9A5C", "#4A4A4A", v + 1); // -1→green, 0→gray
-  return lerpColor("#4A4A4A", "#4A7EC9", v);                  // 0→gray, +1→blue
-}
-
 /** Diverging bar: center = 0, positive grows right, negative grows left */
 function SkewBar({ value, colorPos, colorNeg }: { value: number; colorPos: string; colorNeg: string }) {
   const v = Math.max(-1, Math.min(1, value));
