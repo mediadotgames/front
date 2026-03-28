@@ -126,6 +126,9 @@ interface PaginationOpts {
 interface HeatmapOpts extends PaginationOpts {
   q?: string;
   category?: string;
+  timeRange?: string;
+  geo?: string[];
+  exclSportsEnt?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +141,11 @@ export function fetchHeatmap(opts?: HeatmapOpts): Promise<PaginatedResponse<Heat
   if (opts?.offset != null) params.offset = String(opts.offset);
   if (opts?.category) params.category = opts.category;
   if (opts?.q) params.q = opts.q;
+  if (opts?.timeRange) params.timeRange = opts.timeRange;
+  if (opts?.exclSportsEnt) params.exclSportsEnt = "true";
+  if (opts?.geo && opts.geo.length > 0) {
+    params.geo = opts.geo.join(",");
+  }
   return apiFetch<PaginatedResponse<HeatmapRow>>("/api/heatmap", params);
 }
 
