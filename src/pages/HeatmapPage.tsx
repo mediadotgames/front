@@ -432,33 +432,8 @@ export function HeatmapPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // --- Derived: API-level time range param ---
-  const apiTimeRange = useMemo((): string | undefined => {
-    const map: Record<string, string> = {
-      "Last 24h": "24h",
-      "Last 48h": "48h",
-      "Last 7 days": "7d",
-      "Last 30 days": "30d",
-    };
-    return map[timeRange];
-  }, [timeRange]);
-
-  // --- Derived: API-level geo param ---
-  const apiGeo = useMemo((): string[] | undefined => {
-    if (selectedGeo.size >= GEO_OPTIONS.length && !quickFilters.usFocusOnly) return undefined;
-    if (quickFilters.usFocusOnly) return ["us"];
-    const geoMap: Record<string, string> = {
-      US: "us",
-      Global: "global",
-      Foreign: "foreign",
-      "State & Local": "state_local",
-    };
-    const result = [...selectedGeo].map((g) => geoMap[g]).filter(Boolean);
-    return result.length > 0 ? result : undefined;
-  }, [selectedGeo, quickFilters.usFocusOnly]);
-
   // Reset page when filters change
-  useEffect(() => { setPage(0); }, [activeApiCategory, minClusterSize, apiTimeRange, apiGeo, quickFilters.exclSportsEnt]);
+  useEffect(() => { setPage(0); }, [activeApiCategory, minClusterSize]);
 
   // --- Load data ---
   const load = useCallback(async () => {
@@ -471,9 +446,6 @@ export function HeatmapPage() {
       };
       if (activeApiCategory) opts.category = activeApiCategory;
       if (debouncedQuery.trim()) opts.q = debouncedQuery.trim();
-      if (apiTimeRange) opts.timeRange = apiTimeRange;
-      if (apiGeo) opts.geo = apiGeo;
-      if (quickFilters.exclSportsEnt) opts.exclSportsEnt = true;
 
       const [heatmap, sum, outletsResp] = await Promise.all([
         fetchHeatmap(opts),
@@ -497,7 +469,7 @@ export function HeatmapPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeApiCategory, debouncedQuery, page, apiTimeRange, apiGeo, quickFilters.exclSportsEnt]);
+  }, [activeApiCategory, debouncedQuery, page]);
 
   useEffect(() => {
     load();
@@ -1454,10 +1426,23 @@ export function HeatmapPage() {
           <thead style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             {/* Group header row — only shown for per-outlet views */}
             {!groupedColumns && (<tr>
-              {/* Meta columns: Topic, Pol, Geo */}
+              {/* Meta columns: #, Topic, Pol, Geo */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(0, 28),
+                  background: "var(--surface)",
+                  padding: "6px 0 2px",
+                  fontSize: 10,
+                  color: "transparent",
+                  borderBottom: "none",
+                  textAlign: "center",
+                }}
+              >
+                &nbsp;
+              </th>
+              <th
+                style={{
+                  ...stickyCol(28, 260),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1515,10 +1500,27 @@ export function HeatmapPage() {
 
             {/* Column header row */}
             <tr>
+              {/* # */}
+              <th
+                style={{
+                  ...stickyCol(0, 28),
+                  background: "var(--surface)",
+                  padding: "6px 4px",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  color: "var(--text-secondary)",
+                  borderBottom: "none",
+                  textAlign: "right",
+                  paddingRight: 6,
+                  zIndex: 10,
+                }}
+              >
+                #
+              </th>
               {/* Topic */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(28, 260),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1667,7 +1669,7 @@ export function HeatmapPage() {
                 </td>
               </tr>
             )}
-            {filteredRows.map((row) => {
+            {filteredRows.map((row, idx) => {
               const polVal = Number(row.polSkew) || 0;
               const geoVal = Number(row.geoSkew) || 0;
 
@@ -1696,11 +1698,28 @@ export function HeatmapPage() {
                     });
                   }}
                 >
+                  {/* Row number */}
+                  <td
+                    data-sticky
+                    style={{
+                      ...stickyCol(0, 28),
+                      background: "var(--surface-white)",
+                      color: "var(--text-tertiary)",
+                      fontSize: 11,
+                      textAlign: "right",
+                      paddingRight: 6,
+                      padding: "6px 6px 6px 4px",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {idx + 1}
+                  </td>
+
                   {/* Topic */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(0, 288),
+                      ...stickyCol(28, 260),
                       background: "var(--surface-white)",
                       textAlign: "left",
                       padding: "6px 4px 6px 12px",
