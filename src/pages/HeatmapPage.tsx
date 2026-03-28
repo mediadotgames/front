@@ -255,7 +255,7 @@ export function HeatmapPage() {
   const [minPiPct, setMinPiPct] = useState(0);
 
   // --- Table view ---
-  const [tableView, setTableView] = useState<"outlets-bias" | "outlets-region" | "bias" | "region">("outlets-bias");
+  const [tableView, setTableView] = useState<"outlets-bias" | "outlets-region" | "bias" | "region">("bias");
 
   // --- Sort ---
   const [sortField, setSortField] = useState<SortField>("clusterSize");
@@ -1398,10 +1398,10 @@ export function HeatmapPage() {
               backgroundPosition: "right 8px center",
             }}
           >
-            <option value="outlets-bias">Outlets by Bias</option>
-            <option value="outlets-region">Outlets by Region</option>
             <option value="bias">Grouped by Bias</option>
             <option value="region">Grouped by Region</option>
+            <option value="outlets-bias">Outlets by Bias</option>
+            <option value="outlets-region">Outlets by Region</option>
           </select>
         </div>
       </div>
