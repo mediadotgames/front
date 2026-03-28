@@ -25,6 +25,7 @@ export interface HeatmapRow {
   totalArticles: number;
   earliestPublished: string;
   latestPublished: string;
+  medoidImage: string | null;
   cells: Record<string, HeatmapCell>;
 }
 

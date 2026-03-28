@@ -1407,7 +1407,7 @@ export function HeatmapPage() {
             width: "100%",
             minWidth: 1200,
             fontSize: 13,
-            fontFamily: "'Source Serif 4', Georgia, serif",
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             ...(groupedColumns ? { tableLayout: "fixed" as const } : {}),
           }}
         >
@@ -1429,7 +1429,7 @@ export function HeatmapPage() {
               {/* Meta columns: #, Topic, Pol, Geo */}
               <th
                 style={{
-                  ...stickyCol(0, 28),
+                  ...stickyCol(0, 36),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1445,7 +1445,7 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(28, 260),
+                  ...stickyCol(36, 252),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1503,31 +1503,26 @@ export function HeatmapPage() {
 
             {/* Column header row */}
             <tr>
-              {/* # */}
+              {/* Thumbnail */}
               <th
                 style={{
-                  ...stickyCol(0, 28),
+                  ...stickyCol(0, 36),
                   background: "var(--surface)",
-                  padding: "6px 4px",
-                  fontWeight: 600,
-                  fontSize: 11,
-                  color: "var(--text-secondary)",
+                  padding: "6px 2px",
                   borderBottom: "none",
-                  textAlign: "right",
-                  paddingRight: 6,
                   zIndex: 10,
                 }}
               >
-                #
+                &nbsp;
               </th>
               {/* Topic */}
               <th
                 style={{
-                  ...stickyCol(28, 260),
+                  ...stickyCol(36, 252),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
-                  fontSize: 11,
+                  fontSize: 15,
                   color: "var(--text-secondary)",
                   borderBottom: "none",
                   textAlign: "left",
@@ -1556,7 +1551,7 @@ export function HeatmapPage() {
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
-                  fontSize: 11,
+                  fontSize: 15,
                   color: "var(--text-secondary)",
                   borderBottom: "none",
                   textAlign: "left",
@@ -1585,7 +1580,7 @@ export function HeatmapPage() {
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
-                  fontSize: 11,
+                  fontSize: 15,
                   color: "var(--text-secondary)",
                   borderBottom: "none",
                   textAlign: "left",
@@ -1615,7 +1610,7 @@ export function HeatmapPage() {
                       style={{
                         padding: "6px 8px",
                         fontWeight: 700,
-                        fontSize: 11,
+                        fontSize: 15,
                         color: col.color,
                         borderBottom: "none",
                         textAlign: "center",
@@ -1672,7 +1667,7 @@ export function HeatmapPage() {
                 </td>
               </tr>
             )}
-            {filteredRows.map((row, idx) => {
+            {filteredRows.map((row) => {
               const polVal = Number(row.polSkew) || 0;
               const geoVal = Number(row.geoSkew) || 0;
 
@@ -1701,28 +1696,40 @@ export function HeatmapPage() {
                     });
                   }}
                 >
-                  {/* Row number */}
+                  {/* Thumbnail */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(0, 28),
+                      ...stickyCol(0, 36),
                       background: "var(--surface-white)",
-                      color: "var(--text-tertiary)",
-                      fontSize: 11,
-                      textAlign: "right",
-                      paddingRight: 6,
-                      padding: "6px 6px 6px 4px",
-                      fontVariantNumeric: "tabular-nums",
+                      padding: "4px 2px",
+                      verticalAlign: "middle",
                     }}
                   >
-                    {idx + 1}
+                    {row.medoidImage ? (
+                      <img
+                        src={row.medoidImage}
+                        alt=""
+                        loading="lazy"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 4,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div style={{ width: 32, height: 32, borderRadius: 4, background: "var(--surface)" }} />
+                    )}
                   </td>
 
                   {/* Topic */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(28, 260),
+                      ...stickyCol(36, 252),
                       background: "var(--surface-white)",
                       textAlign: "left",
                       padding: "6px 4px 6px 12px",
@@ -1732,15 +1739,16 @@ export function HeatmapPage() {
                       wordWrap: "break-word",
                     }}
                   >
-                    <span>
+                    <span style={{ fontSize: 15 }}>
                       {row.topicLabel}
                     </span>
                     <span
                       style={{
+                        display: "block",
                         fontSize: 11,
                         color: "var(--text-tertiary)",
                         fontWeight: 400,
-                        marginLeft: 6,
+                        marginTop: 2,
                         whiteSpace: "nowrap",
                       }}
                     >
