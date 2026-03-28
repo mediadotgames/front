@@ -1086,15 +1086,6 @@ function ArticleCard({ article }: { article: Article }) {
             marginBottom: 6,
           }}
         >
-          {article.outletDomain && (
-            <img
-              src={`https://www.google.com/s2/favicons?domain=${article.outletDomain}&sz=32`}
-              alt=""
-              width={16}
-              height={16}
-              style={{ borderRadius: 2, flexShrink: 0 }}
-            />
-          )}
           <span
             style={{
               fontSize: 12,

@@ -1426,10 +1426,26 @@ export function HeatmapPage() {
           <thead style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             {/* Group header row — only shown for per-outlet views */}
             {!groupedColumns && (<tr>
-              {/* Meta columns: Topic, Pol, Geo */}
+              {/* Meta columns: #, Topic, Pol, Geo */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(0, 36),
+                  background: "var(--surface)",
+                  padding: "6px 0 2px",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  borderBottom: "none",
+                  textAlign: "center",
+                  color: "transparent",
+                }}
+              >
+                &nbsp;
+              </th>
+              <th
+                style={{
+                  ...stickyCol(36, 252),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1487,10 +1503,22 @@ export function HeatmapPage() {
 
             {/* Column header row */}
             <tr>
+              {/* Thumbnail */}
+              <th
+                style={{
+                  ...stickyCol(0, 36),
+                  background: "var(--surface)",
+                  padding: "6px 2px",
+                  borderBottom: "none",
+                  zIndex: 10,
+                }}
+              >
+                &nbsp;
+              </th>
               {/* Topic */}
               <th
                 style={{
-                  ...stickyCol(0, 288),
+                  ...stickyCol(36, 252),
                   background: "var(--surface)",
                   padding: "6px 4px 6px 12px",
                   fontWeight: 600,
@@ -1668,42 +1696,52 @@ export function HeatmapPage() {
                     });
                   }}
                 >
-                  {/* Topic (thumbnail + label) */}
+                  {/* Thumbnail */}
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(0, 288),
+                      ...stickyCol(0, 36),
+                      background: "var(--surface-white)",
+                      padding: "4px 2px",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    {row.medoidImage ? (
+                      <img
+                        src={row.medoidImage}
+                        alt=""
+                        loading="lazy"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 4,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div style={{ width: 32, height: 32, borderRadius: 4, background: "var(--surface)" }} />
+                    )}
+                  </td>
+
+                  {/* Topic */}
+                  <td
+                    data-sticky
+                    style={{
+                      ...stickyCol(36, 252),
                       background: "var(--surface-white)",
                       textAlign: "left",
-                      padding: "6px 4px 6px 8px",
+                      padding: "6px 4px 6px 12px",
                       color: "var(--text)",
                       fontWeight: 500,
                       whiteSpace: "normal",
                       wordWrap: "break-word",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                      {row.medoidImage ? (
-                        <img
-                          src={row.medoidImage}
-                          alt=""
-                          loading="lazy"
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 4,
-                            objectFit: "cover",
-                            flexShrink: 0,
-                          }}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      ) : (
-                        <div style={{ width: 40, height: 40, borderRadius: 4, background: "var(--surface)", flexShrink: 0 }} />
-                      )}
-                      <div style={{ minWidth: 0 }}>
-                        <span style={{ fontSize: 15 }}>
-                          {row.topicLabel}
-                        </span>
+                    <span style={{ fontSize: 15 }}>
+                      {row.topicLabel}
+                    </span>
                     <span
                       style={{
                         display: "block",
@@ -1741,8 +1779,6 @@ export function HeatmapPage() {
                         </span>
                       )}
                     </span>
-                      </div>
-                    </div>
                   </td>
 
                   {/* Pol skew */}
