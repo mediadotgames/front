@@ -1444,8 +1444,8 @@ export function HeatmapPage() {
             <colgroup>
               <col style={{ width: 28 }} />   {/* # */}
               <col />                          {/* Topic — gets remaining space */}
-              <col style={{ width: 50 }} />   {/* Bias Skew */}
-              <col style={{ width: 50 }} />   {/* Geo Skew */}
+              <col style={{ width: 80 }} />   {/* Bias Skew */}
+              <col style={{ width: 80 }} />   {/* Geo Skew */}
               {groupedColumns.map((col) => (
                 <col key={col.key} style={{ width: 80 }} />
               ))}
@@ -1469,7 +1469,7 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(288, 60),
+                  ...stickyCol(288, 80),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1481,7 +1481,7 @@ export function HeatmapPage() {
               </th>
               <th
                 style={{
-                  ...stickyCol(348, 60, true),
+                  ...stickyCol(368, 80, true),
                   background: "var(--surface)",
                   padding: "6px 0 2px",
                   fontSize: 10,
@@ -1547,14 +1547,14 @@ export function HeatmapPage() {
               {/* Pol */}
               <th
                 style={{
-                  ...stickyCol(288, 60),
+                  ...stickyCol(288, 80),
                   background: "var(--surface)",
-                  padding: "6px 4px 6px 12px",
+                  padding: "6px 4px",
                   fontWeight: 600,
                   fontSize: 15,
                   color: "var(--text-secondary)",
                   borderBottom: "none",
-                  textAlign: "left",
+                  textAlign: "center",
                   zIndex: 10,
                   cursor: "pointer",
                   userSelect: "none",
@@ -1576,14 +1576,14 @@ export function HeatmapPage() {
               {/* Geo */}
               <th
                 style={{
-                  ...stickyCol(348, 60, true),
+                  ...stickyCol(368, 80, true),
                   background: "var(--surface)",
-                  padding: "6px 4px 6px 12px",
+                  padding: "6px 4px",
                   fontWeight: 600,
                   fontSize: 15,
                   color: "var(--text-secondary)",
                   borderBottom: "none",
-                  textAlign: "left",
+                  textAlign: "center",
                   zIndex: 10,
                   cursor: "pointer",
                   userSelect: "none",
@@ -1756,7 +1756,7 @@ export function HeatmapPage() {
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(288, 60),
+                      ...stickyCol(288, 80),
                       background: "var(--surface-white)",
                       padding: "4px 6px",
                       verticalAlign: "middle",
@@ -1769,7 +1769,7 @@ export function HeatmapPage() {
                   <td
                     data-sticky
                     style={{
-                      ...stickyCol(348, 60, true),
+                      ...stickyCol(368, 80, true),
                       background: "var(--surface-white)",
                       padding: "4px 6px",
                       verticalAlign: "middle",
